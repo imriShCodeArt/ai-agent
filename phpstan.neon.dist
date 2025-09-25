@@ -2,6 +2,12 @@ parameters:
   level: 6
   paths:
     - src
-  ignoreErrors: []
+  ignoreErrors:
+    -
+      identifier: function.notFound
+      path: src/*
+      message: "#add_action#"
+  stubFiles:
+    - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
 
 

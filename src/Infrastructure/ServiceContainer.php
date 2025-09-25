@@ -2,7 +2,10 @@
 namespace AIAgent\Infrastructure;
 
 final class ServiceContainer {
-private array $bindings = [];
+	/**
+	 * @var array<string, callable>
+	 */
+	private array $bindings = [];
 
 public function bind(string $id, callable $factory): void {
 $this->bindings[$id] = $factory;
@@ -18,7 +21,10 @@ return $instance;
 };
 }
 
-public function get(string $id) {
+	/**
+	 * @return mixed
+	 */
+	public function get(string $id) {
 if (!isset($this->bindings[$id])) {
 throw new \InvalidArgumentException('Service not bound: ' . $id);
 }

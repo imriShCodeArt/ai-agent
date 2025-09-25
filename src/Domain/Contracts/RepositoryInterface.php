@@ -2,5 +2,8 @@
 namespace AIAgent\Domain\Contracts;
 
 interface RepositoryInterface {
-public function findById(int $id);
+	/**
+	 * @return mixed
+	 */
+	public function findById(int $id);
 }
