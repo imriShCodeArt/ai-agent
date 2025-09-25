@@ -13,7 +13,7 @@ class AbstractServiceProviderTest extends TestCase
     {
         // Use a real container instead of mocking final class
         $container = new ServiceContainer();
-        $hooks = $this->createMock(HooksLoader::class);
+        $hooks = new HooksLoader();
         $pluginFile = '/test/path.php';
 
         $provider = new class($container, $hooks, $pluginFile) extends AbstractServiceProvider {
