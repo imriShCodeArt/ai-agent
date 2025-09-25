@@ -12,8 +12,8 @@ class PluginTest extends TestCase
     public function testPluginBootCreatesInstance(): void
     {
         $pluginFile = __DIR__ . '/../../../ai-agent.php';
-        
-        // Mock the plugin file for testing
+
+        // Boot should not error even without full WordPress env
         Plugin::boot($pluginFile);
         
         // Since Plugin uses singleton pattern, we can't easily test the instance

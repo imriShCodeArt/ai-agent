@@ -11,7 +11,8 @@ class AbstractServiceProviderTest extends TestCase
 {
     public function testConstructorSetsProperties(): void
     {
-        $container = $this->createMock(ServiceContainer::class);
+        // Use a real container instead of mocking final class
+        $container = new ServiceContainer();
         $hooks = $this->createMock(HooksLoader::class);
         $pluginFile = '/test/path.php';
 
