@@ -9,7 +9,6 @@ parameters:
     - '#Constant .* not found\.#'
     - '#Class WP_.* not found\.#'
     - '#Call to method .* on an unknown class WP_.*\.#'
-    - '#Property .* cannot have callable in its type declaration\.#'
     - '#Parameter .* of function array_map expects .* given\.#'
     - '#Offset .* on array.* on left side of .* does not exist\.#'
     - '#Variable .* in empty\(\) always exists and is not falsy\.#'
@@ -19,6 +18,9 @@ parameters:
     - '#Method .* has parameter .* with no type specified\.#'
     - '#Property .* is never read, only written\.#'
     - '#Non-abstract class .* contains abstract method .* from interface .*\.#'
+    - '#Method .* has invalid return type WP_.*\.#'
+    - '#Parameter .* of method .* has invalid type WP_.*\.#'
+    - '#Instantiated class WP_.* not found\.#'
   stubFiles:
     - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
 

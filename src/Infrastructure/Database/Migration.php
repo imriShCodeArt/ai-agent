@@ -6,8 +6,10 @@ final class Migration
 {
     private string $version;
     private string $description;
-    private callable $up;
-    private callable $down;
+    /** @var callable */
+    private $up;
+    /** @var callable */
+    private $down;
 
     public function __construct(string $version, string $description, callable $up, callable $down)
     {
