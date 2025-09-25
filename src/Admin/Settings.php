@@ -252,6 +252,9 @@ final class Settings
         echo '<div class="notice notice-success"><p>Settings saved successfully!</p></div>';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function getSettings(): array
     {
         return [

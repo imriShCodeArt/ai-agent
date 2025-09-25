@@ -260,4 +260,9 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
     {
         return is_user_logged_in() && current_user_can('ai_agent_view_logs');
     }
+
+    public function addHooks(): void
+    {
+        $this->registerHooks();
+    }
 }

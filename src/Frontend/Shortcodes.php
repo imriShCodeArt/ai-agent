@@ -26,6 +26,9 @@ final class Shortcodes
         add_shortcode('ai_agent_chat', [$this, 'renderChatShortcode']);
     }
 
+    /**
+     * @param array<string, mixed> $atts
+     */
     public function renderChatShortcode($atts): string
     {
         $atts = shortcode_atts([

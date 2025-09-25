@@ -29,4 +29,9 @@ final class FrontendServiceProvider extends AbstractServiceProvider implements H
         $shortcodes = $this->container->get(Shortcodes::class);
         $shortcodes->addHooks();
     }
+
+    public function addHooks(): void
+    {
+        $this->registerHooks();
+    }
 }

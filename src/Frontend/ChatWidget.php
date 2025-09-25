@@ -13,6 +13,9 @@ final class ChatWidget
         $this->logger = $logger;
     }
 
+    /**
+     * @param array<string, mixed> $args
+     */
     public function renderChatWidget(array $args = []): string
     {
         $args = wp_parse_args($args, [

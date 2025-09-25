@@ -30,4 +30,9 @@ final class AdminServiceProvider extends AbstractServiceProvider implements Hook
         add_action('admin_init', [$settings, 'registerSettings']);
         add_action('admin_init', [$settings, 'addSettingsPage']);
     }
+
+    public function addHooks(): void
+    {
+        $this->registerHooks();
+    }
 }
