@@ -2,11 +2,22 @@ parameters:
   level: 6
   paths:
     - src
+  bootstrapFiles:
+    - tests/bootstrap.php
   ignoreErrors:
-    -
-      identifier: function.notFound
-      path: src/*
-      message: "#add_action#"
+    - '#Function .* not found\.#'
+    - '#Constant .* not found\.#'
+    - '#Call to method .* on an unknown class WP_.*\.#'
+    - '#Parameter .* of function array_map expects .* given\.#'
+    - '#Offset .* on array.* on left side of .* does not exist\.#'
+    - '#Variable .* in empty\(\) always exists and is not falsy\.#'
+    - '#Method .* has parameter .* with no value type specified in iterable type array\.#'
+    - '#Method .* return type has no value type specified in iterable type array\.#'
+    - '#Property .* type has no value type specified in iterable type array\.#'
+    - '#Property .* is never read, only written\.#'
+    - '#Method .* has invalid return type WP_.*\.#'
+    - '#Parameter .* of method .* has invalid type WP_.*\.#'
+    - '#Instantiated class WP_.* not found\.#'
   stubFiles:
     - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
 

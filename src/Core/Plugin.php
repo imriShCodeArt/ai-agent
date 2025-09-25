@@ -7,6 +7,7 @@ use AIAgent\Application\Providers\AdminServiceProvider;
 use AIAgent\Application\Providers\FrontendServiceProvider;
 use AIAgent\Application\Providers\RestApiServiceProvider;
 use AIAgent\Application\Providers\CliServiceProvider;
+use AIAgent\Support\Logger;
 
 final class Plugin {
 private static ?self $instance = null;
@@ -18,6 +19,10 @@ private function __construct(string $pluginFile) {
 $this->pluginFile = $pluginFile;
 $this->container = new ServiceContainer();
 $this->hooks = new HooksLoader();
+// Bind core singletons
+$this->container->singleton(Logger::class, static function () {
+return new Logger();
+});
 }
 
 public static function boot(string $pluginFile): void {
