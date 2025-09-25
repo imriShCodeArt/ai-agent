@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 use AIAgent\Application\Providers\AsyncServiceProvider;
 use AIAgent\Infrastructure\ServiceContainer;
 use AIAgent\Infrastructure\Hooks\HooksLoader;
+use AIAgent\Infrastructure\Queue\AsyncQueue;
 use AIAgent\Support\Logger;
 
 final class AsyncServiceProviderTest extends TestCase
@@ -24,11 +25,10 @@ final class AsyncServiceProviderTest extends TestCase
         $provider->register();
         $provider->addHooks();
 
-        $this->assertTrue(function_exists('do_action'));
-
-        // Enqueue with Action Scheduler unavailable in test bootstrap → inline execute
-        $queue = $container->get(\AIAgent\Application\Providers\AsyncServiceProvider::class . "\0AsyncQueue");
-        // We can't access private classes easily; instead assert that hook exists
+        // Test that the AsyncQueue is registered in the container
+        $this->assertTrue($container->has(AsyncQueue::class));
+        
+        // Test that the hook is registered
         $this->assertTrue(has_action('ai_agent_async_execute') >= 10);
     }
 }
