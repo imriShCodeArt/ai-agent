@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<ruleset name="ai-agent">
+	<description>PHPCS rules for AI Agent</description>
+	<file>./</file>
+	<exclude-pattern>vendor/*</exclude-pattern>
+	<exclude-pattern>node_modules/*</exclude-pattern>
+	<exclude-pattern>tests/*</exclude-pattern>
+	<arg name="extensions" value="php,inc"/>
+	<rule ref="WordPress-Extra"/>
+	<rule ref="WordPress-Docs"/>
+	<config name="testVersion" value="7.4-"/>
+</ruleset>
+
+
