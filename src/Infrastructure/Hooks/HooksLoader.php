@@ -1,5 +1,5 @@
 <?php
-namespace AIAgent\\Infrastructure\\Hooks;
+namespace AIAgent\Infrastructure\Hooks;
 
 final class HooksLoader {
 /** @var HookableInterface[] */

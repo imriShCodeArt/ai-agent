@@ -1,5 +1,5 @@
 <?php
-namespace AIAgent\\Core;
+namespace AIAgent\Core;
 
 /**
  * Simple PSR-4 autoloader for the plugin.
@@ -10,11 +10,11 @@ spl_autoload_register([static::class, 'autoload']);
 }
 
 public static function autoload(string $class): void {
-if (strpos($class, 'AIAgent\\\\') !== 0) {
+if (strpos($class, 'AIAgent\\') !== 0) {
 return;
 }
-$relative = str_replace('AIAgent\\\\', '', $class);
-$relative = str_replace('\\\\', '/', $relative);
+$relative = str_replace('AIAgent\\', '', $class);
+$relative = str_replace('\\', '/', $relative);
 $file = __DIR__ . '/../' . $relative . '.php';
 if (is_readable($file)) {
 require_once $file;

@@ -1,7 +1,7 @@
 <?php
-namespace AIAgent\\Frontend;
+namespace AIAgent\Frontend;
 
-use AIAgent\\Infrastructure\\Hooks\\HookableInterface;
+use AIAgent\Infrastructure\Hooks\HookableInterface;
 
 final class Shortcodes implements HookableInterface {
 public function addHooks(): void {

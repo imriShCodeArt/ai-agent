@@ -1,5 +1,5 @@
 <?php
-namespace AIAgent\\Support;
+namespace AIAgent\Support;
 
 final class Logger {
 public function info(string $message, array $context = []): void {}

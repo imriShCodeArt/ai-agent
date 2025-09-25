@@ -1,7 +1,7 @@
 <?php
-namespace AIAgent\\Application\\Providers;
+namespace AIAgent\Application\Providers;
 
-use AIAgent\\Frontend\\Shortcodes;
+use AIAgent\Frontend\Shortcodes;
 
 final class FrontendServiceProvider extends AbstractServiceProvider {
 public function register(): void {

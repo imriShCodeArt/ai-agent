@@ -1,5 +1,5 @@
 <?php
-namespace AIAgent\\Infrastructure;
+namespace AIAgent\Infrastructure;
 
 interface ServiceProviderInterface {
 public function register(): void;

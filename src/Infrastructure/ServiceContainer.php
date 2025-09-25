@@ -1,5 +1,5 @@
 <?php
-namespace AIAgent\\Infrastructure;
+namespace AIAgent\Infrastructure;
 
 final class ServiceContainer {
 private array $bindings = [];
@@ -20,7 +20,7 @@ return $instance;
 
 public function get(string $id) {
 if (!isset($this->bindings[$id])) {
-throw new \\InvalidArgumentException('Service not bound: ' . $id);
+throw new \InvalidArgumentException('Service not bound: ' . $id);
 }
 return ($this->bindings[$id])();
 }

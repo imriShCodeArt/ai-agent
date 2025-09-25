@@ -1,12 +1,12 @@
 <?php
-namespace AIAgent\\Core;
+namespace AIAgent\Core;
 
-use AIAgent\\Infrastructure\\Hooks\\HooksLoader;
-use AIAgent\\Infrastructure\\ServiceContainer;
-use AIAgent\\Application\\Providers\\AdminServiceProvider;
-use AIAgent\\Application\\Providers\\FrontendServiceProvider;
-use AIAgent\\Application\\Providers\\RestApiServiceProvider;
-use AIAgent\\Application\\Providers\\CliServiceProvider;
+use AIAgent\Infrastructure\Hooks\HooksLoader;
+use AIAgent\Infrastructure\ServiceContainer;
+use AIAgent\Application\Providers\AdminServiceProvider;
+use AIAgent\Application\Providers\FrontendServiceProvider;
+use AIAgent\Application\Providers\RestApiServiceProvider;
+use AIAgent\Application\Providers\CliServiceProvider;
 
 final class Plugin {
 private static ?self $instance = null;

@@ -1,9 +1,9 @@
 <?php
-namespace AIAgent\\Application\\Providers;
+namespace AIAgent\Application\Providers;
 
-use AIAgent\\Infrastructure\\ServiceProviderInterface;
-use AIAgent\\Infrastructure\\Hooks\\HooksLoader;
-use AIAgent\\Infrastructure\\ServiceContainer;
+use AIAgent\Infrastructure\ServiceProviderInterface;
+use AIAgent\Infrastructure\Hooks\HooksLoader;
+use AIAgent\Infrastructure\ServiceContainer;
 
 abstract class AbstractServiceProvider implements ServiceProviderInterface {
 protected ServiceContainer $container;

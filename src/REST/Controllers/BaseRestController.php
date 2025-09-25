@@ -1,7 +1,7 @@
 <?php
-namespace AIAgent\\REST\\Controllers;
+namespace AIAgent\REST\Controllers;
 
-use AIAgent\\Infrastructure\\Hooks\\HookableInterface;
+use AIAgent\Infrastructure\Hooks\HookableInterface;
 
 abstract class BaseRestController implements HookableInterface {
 public function addHooks(): void {

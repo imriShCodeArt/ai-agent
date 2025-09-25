@@ -1,5 +1,5 @@
 <?php
-namespace AIAgent\\Infrastructure\\Hooks;
+namespace AIAgent\Infrastructure\Hooks;
 
 interface HookableInterface {
 public function addHooks(): void;

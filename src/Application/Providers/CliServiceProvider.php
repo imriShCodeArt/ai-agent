@@ -1,5 +1,5 @@
 <?php
-namespace AIAgent\\Application\\Providers;
+namespace AIAgent\Application\Providers;
 
 final class CliServiceProvider extends AbstractServiceProvider {
 public function register(): void {

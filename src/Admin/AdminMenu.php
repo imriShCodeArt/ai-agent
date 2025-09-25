@@ -1,7 +1,7 @@
 <?php
-namespace AIAgent\\Admin;
+namespace AIAgent\Admin;
 
-use AIAgent\\Infrastructure\\Hooks\\HookableInterface;
+use AIAgent\Infrastructure\Hooks\HookableInterface;
 
 final class AdminMenu implements HookableInterface {
 public function addHooks(): void {
