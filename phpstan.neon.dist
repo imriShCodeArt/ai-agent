@@ -7,7 +7,6 @@ parameters:
   ignoreErrors:
     - '#Function .* not found\.#'
     - '#Constant .* not found\.#'
-    - '#Class WP_.* not found\.#'
     - '#Call to method .* on an unknown class WP_.*\.#'
     - '#Parameter .* of function array_map expects .* given\.#'
     - '#Offset .* on array.* on left side of .* does not exist\.#'
@@ -15,9 +14,7 @@ parameters:
     - '#Method .* has parameter .* with no value type specified in iterable type array\.#'
     - '#Method .* return type has no value type specified in iterable type array\.#'
     - '#Property .* type has no value type specified in iterable type array\.#'
-    - '#Method .* has parameter .* with no type specified\.#'
     - '#Property .* is never read, only written\.#'
-    - '#Non-abstract class .* contains abstract method .* from interface .*\.#'
     - '#Method .* has invalid return type WP_.*\.#'
     - '#Parameter .* of method .* has invalid type WP_.*\.#'
     - '#Instantiated class WP_.* not found\.#'
