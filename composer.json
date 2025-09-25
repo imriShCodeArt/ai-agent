@@ -1,0 +1,12 @@
+{
+  "name": "your-vendor/ai-agent",
+  "description": "WordPress AI Agent plugin foundation",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "autoload": {
+    "psr-4": {
+      "AIAgent\\": "src/"
+    }
+  },
+  "require": {}
+}
