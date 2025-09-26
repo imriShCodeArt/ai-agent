@@ -30,4 +30,8 @@ throw new \InvalidArgumentException('Service not bound: ' . $id);
 }
 return ($this->bindings[$id])();
 }
+
+public function has(string $id): bool {
+return isset($this->bindings[$id]);
+}
 }
