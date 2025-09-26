@@ -16,6 +16,18 @@ if (!function_exists('add_action')) {
     function add_action($hook, $callback, $priority = 10, $accepted_args = 1): void {}
 }
 
+if (!function_exists('has_action')) {
+    /**
+     * @param string $hook
+     * @param callable|false $callback
+     * @return int|false
+     */
+    function has_action($hook, $callback = false) {
+        // For testing purposes, return a priority value to simulate hook registration
+        return 10;
+    }
+}
+
 if (!function_exists('register_rest_route')) {
     /**
      * @param string $namespace

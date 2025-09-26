@@ -7,6 +7,7 @@ use AIAgent\Application\Providers\AdminServiceProvider;
 use AIAgent\Application\Providers\FrontendServiceProvider;
 use AIAgent\Application\Providers\RestApiServiceProvider;
 use AIAgent\Application\Providers\CliServiceProvider;
+use AIAgent\Application\Providers\AsyncServiceProvider;
 use AIAgent\Support\Logger;
 
 final class Plugin {
@@ -34,11 +35,12 @@ self::$instance->hooks->register();
 }
 
 private function registerProviders(): void {
-$providers = [
+        $providers = [
 AdminServiceProvider::class,
 FrontendServiceProvider::class,
 RestApiServiceProvider::class,
-CliServiceProvider::class,
+            CliServiceProvider::class,
+            AsyncServiceProvider::class,
 ];
 foreach ($providers as $provider) {
 $instance = new $provider($this->container, $this->hooks, $this->pluginFile);
