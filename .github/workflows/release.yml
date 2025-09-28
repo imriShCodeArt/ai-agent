@@ -21,13 +21,41 @@ jobs:
           VERSION=$(grep "Version:" ai-agent.php | sed 's/.*Version: *//' | tr -d ' ')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag ${{ steps.version.outputs.tag }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Tag ${{ steps.version.outputs.tag }} does not exist"
+          fi
       - name: Create tag
+        if: steps.check_tag.outputs.exists == 'false'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.tag }}"
           git push origin "${{ steps.version.outputs.tag }}"
+      - name: Skip tag creation
+        if: steps.check_tag.outputs.exists == 'true'
+        run: |
+          echo "Skipping tag creation - tag ${{ steps.version.outputs.tag }} already exists"
+      - name: Check if release exists
+        id: check_release
+        run: |
+          if gh release view "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Release ${{ steps.version.outputs.tag }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Release ${{ steps.version.outputs.tag }} does not exist"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create GitHub Release
+        if: steps.check_release.outputs.exists == 'false'
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -39,3 +67,7 @@ jobs:
             - See commit history for details
           draft: false
           prerelease: false
+      - name: Skip release creation
+        if: steps.check_release.outputs.exists == 'true'
+        run: |
+          echo "Skipping release creation - release ${{ steps.version.outputs.tag }} already exists"
