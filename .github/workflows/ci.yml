@@ -2,12 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [ main, development, 'feature/*' ]
+    branches: [ 'feature/*', 'chore/*', 'refactor/*', 'fix/*', 'hotfix/*', 'main', 'development' ]
   pull_request:
     branches: [ main, development ]
 
 jobs:
-  php-tests:
+  CI:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
