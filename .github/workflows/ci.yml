@@ -1,6 +1,8 @@
 name: CI
 
 on:
+  push:
+    branches: [ 'feature/*', 'chore/*', 'refactor/*', 'fix/*', 'hotfix/*' ]
   pull_request:
     branches: [ main, development ]
 
