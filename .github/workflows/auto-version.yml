@@ -1,0 +1,82 @@
+name: Auto Version
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  auto-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Get current version
+        id: current_version
+        run: |
+          VERSION=$(grep "Version:" ai-agent.php | sed 's/.*Version: *//' | tr -d ' ')
+          echo "current_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+      
+      - name: Get latest tag
+        id: latest_tag
+        run: |
+          # Get the latest tag, default to v0.0.0 if none exists
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag: $LATEST_TAG"
+      
+      - name: Compare versions
+        id: compare
+        run: |
+          CURRENT="${{ steps.current_version.outputs.current_version }}"
+          LATEST="${{ steps.latest_tag.outputs.latest_tag }}"
+          LATEST_CLEAN=$(echo "$LATEST" | sed 's/v//')
+          
+          echo "Current version: $CURRENT"
+          echo "Latest tag: $LATEST_CLEAN"
+          
+          if [ "$CURRENT" != "$LATEST_CLEAN" ]; then
+            echo "needs_release=true" >> $GITHUB_OUTPUT
+            echo "Version mismatch - release needed"
+          else
+            echo "needs_release=false" >> $GITHUB_OUTPUT
+            echo "Version matches - no release needed"
+          fi
+      
+      - name: Create tag and release
+        if: steps.compare.outputs.needs_release == 'true'
+        run: |
+          VERSION="${{ steps.current_version.outputs.current_version }}"
+          TAG="v$VERSION"
+          
+          echo "Creating tag: $TAG"
+          
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Create and push tag
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+          
+          # Create GitHub release
+          gh release create "$TAG" \
+            --title "Release $TAG" \
+            --notes "## Changes
+          - See commit history for details
+          - Version: $VERSION" \
+            --latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Skip release
+        if: steps.compare.outputs.needs_release == 'false'
+        run: |
+          echo "Skipping release - version ${{ steps.current_version.outputs.current_version }} already released"
