@@ -7,7 +7,7 @@ on:
     branches: [ main, development ]
 
 jobs:
-  php-tests:
+  CI:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
