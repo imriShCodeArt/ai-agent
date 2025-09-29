@@ -10,7 +10,8 @@ final class OpenAIProviderTest extends TestCase
     public function testCompleteReturnsString(): void
     {
         $provider = new OpenAIProvider(new Logger(), 'test');
-        $result = $provider->complete('Hello world');
+        // Run in non-WP context; provider should fallback gracefully
+        $result = $provider->complete('Hello world', ['model' => 'test-model']);
         $this->assertIsString($result);
         $this->assertStringContainsString('[openai:stub]', $result);
     }
