@@ -9,6 +9,11 @@ use AIAgent\REST\Controllers\LogsController;
 use AIAgent\Infrastructure\Security\Policy;
 use AIAgent\Infrastructure\Audit\AuditLogger;
 use AIAgent\Support\Logger;
+use AIAgent\Infrastructure\LLM\LLMProviderInterface;
+use AIAgent\Infrastructure\LLM\OpenAIProvider;
+use AIAgent\Infrastructure\Tools\ToolRegistry;
+use AIAgent\Infrastructure\Tools\ToolExecutionEngine;
+use AIAgent\Infrastructure\Security\Capabilities;
 
 final class RestApiServiceProvider extends AbstractServiceProvider implements HookableInterface
 {
@@ -43,6 +48,27 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
             return new LogsController(
                 $this->container->get(AuditLogger::class),
                 $this->container->get(Logger::class)
+            );
+        });
+
+        // LLM Provider default binding (OpenAI; can be swapped later)
+        $this->container->singleton(LLMProviderInterface::class, function () {
+            $logger = $this->container->get(Logger::class);
+            $apiKey = (string) get_option('ai_agent_openai_api_key', '');
+            return new OpenAIProvider($logger, $apiKey);
+        });
+
+        // Tool system services
+        $this->container->singleton(ToolRegistry::class, function () {
+            return new ToolRegistry();
+        });
+
+        $this->container->singleton(ToolExecutionEngine::class, function () {
+            return new ToolExecutionEngine(
+                $this->container->get(ToolRegistry::class),
+                $this->container->get(Policy::class),
+                $this->container->get(Capabilities::class),
+                $this->container->get(AuditLogger::class)
             );
         });
     }

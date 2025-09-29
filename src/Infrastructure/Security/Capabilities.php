@@ -15,6 +15,7 @@ final class Capabilities
     public const MANAGE_POLICIES = 'ai_agent_manage_policies';
     public const VIEW_LOGS = 'ai_agent_view_logs';
     public const APPROVE_CHANGES = 'ai_agent_approve_changes';
+    public const EXECUTE_TOOL = 'ai_agent_execute_tool';
 
     private const CAPABILITY_DESCRIPTIONS = [
         self::READ => 'Read AI Agent data',
@@ -28,6 +29,7 @@ final class Capabilities
         self::MANAGE_POLICIES => 'Manage AI Agent policies',
         self::VIEW_LOGS => 'View AI Agent audit logs',
         self::APPROVE_CHANGES => 'Approve AI Agent changes',
+        self::EXECUTE_TOOL => 'Execute AI Agent tools',
     ];
 
     public static function getAll(): array
