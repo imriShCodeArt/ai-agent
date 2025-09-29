@@ -14,6 +14,7 @@ use AIAgent\Infrastructure\LLM\OpenAIProvider;
 use AIAgent\Infrastructure\Tools\ToolRegistry;
 use AIAgent\Infrastructure\Tools\ToolExecutionEngine;
 use AIAgent\Infrastructure\Security\Capabilities;
+use AIAgent\Infrastructure\Tools\TextSummarizeTool;
 
 final class RestApiServiceProvider extends AbstractServiceProvider implements HookableInterface
 {
@@ -60,7 +61,10 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 
         // Tool system services
         $this->container->singleton(ToolRegistry::class, function () {
-            return new ToolRegistry();
+            $registry = new ToolRegistry();
+            // Register built-in tools
+            $registry->register(new TextSummarizeTool($this->container->get(LLMProviderInterface::class)));
+            return $registry;
         });
 
         $this->container->singleton(ToolExecutionEngine::class, function () {
