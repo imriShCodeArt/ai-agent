@@ -361,6 +361,7 @@ final class ChatWidget
         });
         </script>
         <?php
-        return ob_get_clean();
+        $output = ob_get_clean();
+        return $output ?: '';
     }
 }

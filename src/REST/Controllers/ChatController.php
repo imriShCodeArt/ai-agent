@@ -27,14 +27,47 @@ final class ChatController extends BaseRestController
 
     public function chat(WP_REST_Request $request): WP_REST_Response|WP_Error
     {
+        // Verify nonce for security
+        if (!wp_verify_nonce($request->get_header('X-WP-Nonce'), 'wp_rest')) {
+            return new WP_Error(
+                'invalid_nonce',
+                'Invalid nonce provided',
+                ['status' => 403]
+            );
+        }
+
+        // Check user capabilities
+        if (!current_user_can('ai_agent_read')) {
+            return new WP_Error(
+                'insufficient_permissions',
+                'Insufficient permissions to use AI Agent',
+                ['status' => 403]
+            );
+        }
+
         $prompt = $request->get_param('prompt');
         $mode = $request->get_param('mode') ?? 'suggest';
         $sessionId = $request->get_param('session_id') ?? wp_generate_uuid4();
+
+        // Sanitize and validate input
+        $prompt = sanitize_textarea_field($prompt);
+        $mode = sanitize_text_field($mode);
+        $sessionId = sanitize_text_field($sessionId);
 
         if (empty($prompt)) {
             return new WP_Error(
                 'missing_prompt',
                 'Prompt is required',
+                ['status' => 400]
+            );
+        }
+
+        // Validate mode parameter
+        $allowedModes = ['suggest', 'autonomous', 'review'];
+        if (!in_array($mode, $allowedModes, true)) {
+            return new WP_Error(
+                'invalid_mode',
+                'Invalid mode specified',
                 ['status' => 400]
             );
         }
@@ -97,9 +130,32 @@ final class ChatController extends BaseRestController
 
     public function dryRun(WP_REST_Request $request): WP_REST_Response|WP_Error
     {
+        // Verify nonce for security
+        if (!wp_verify_nonce($request->get_header('X-WP-Nonce'), 'wp_rest')) {
+            return new WP_Error(
+                'invalid_nonce',
+                'Invalid nonce provided',
+                ['status' => 403]
+            );
+        }
+
+        // Check user capabilities
+        if (!current_user_can('ai_agent_read')) {
+            return new WP_Error(
+                'insufficient_permissions',
+                'Insufficient permissions to use AI Agent',
+                ['status' => 403]
+            );
+        }
+
         $tool = $request->get_param('tool');
         $entityId = $request->get_param('entity_id');
         $fields = $request->get_param('fields') ?? [];
+
+        // Sanitize and validate input
+        $tool = sanitize_text_field($tool);
+        $entityId = $entityId ? (int) $entityId : null;
+        $fields = is_array($fields) ? $fields : [];
 
         if (empty($tool)) {
             return new WP_Error(

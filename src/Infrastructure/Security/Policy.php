@@ -17,6 +17,16 @@ final class Policy
 
     public function isAllowed(string $tool, int $entityId = null, array $fields = []): bool
     {
+        // Input validation and sanitization
+        $tool = $this->sanitizeToolName($tool);
+        $entityId = $this->sanitizeEntityId($entityId);
+        $fields = $this->sanitizeFields($fields);
+        
+        if (empty($tool)) {
+            $this->logger->warning('Invalid tool name provided', ['tool' => $tool]);
+            return false;
+        }
+        
         $policy = $this->getPolicyForTool($tool);
         
         if (!$policy) {
@@ -198,6 +208,70 @@ final class Policy
         }
 
         return $content;
+    }
+
+    /**
+     * Sanitize tool name to prevent injection attacks
+     */
+    private function sanitizeToolName(string $tool): string
+    {
+        // Remove any non-alphanumeric characters except dots and underscores
+        $sanitized = preg_replace('/[^a-zA-Z0-9._-]/', '', $tool);
+        
+        // Ensure we have a string before using substr
+        if ($sanitized === null) {
+            $sanitized = '';
+        }
+        
+        // Limit length to prevent buffer overflow
+        return substr($sanitized, 0, 50);
+    }
+
+    /**
+     * Sanitize entity ID to ensure it's a positive integer
+     */
+    private function sanitizeEntityId(?int $entityId): ?int
+    {
+        if ($entityId === null) {
+            return null;
+        }
+        
+        // Ensure positive integer
+        return max(0, (int) $entityId);
+    }
+
+    /**
+     * Sanitize fields array to prevent XSS and injection attacks
+     */
+    private function sanitizeFields(array $fields): array
+    {
+        $sanitized = [];
+        
+        foreach ($fields as $key => $value) {
+            // Sanitize key
+            $sanitizedKey = sanitize_key($key);
+            
+            if (empty($sanitizedKey)) {
+                continue;
+            }
+            
+            // Sanitize value based on type
+            if (is_string($value)) {
+                // Remove potentially dangerous content
+                $sanitizedValue = wp_strip_all_tags($value);
+                $sanitizedValue = sanitize_text_field($sanitizedValue);
+            } elseif (is_array($value)) {
+                $sanitizedValue = $this->sanitizeFields($value);
+            } elseif (is_numeric($value)) {
+                $sanitizedValue = (int) $value;
+            } else {
+                $sanitizedValue = sanitize_text_field((string) $value);
+            }
+            
+            $sanitized[$sanitizedKey] = $sanitizedValue;
+        }
+        
+        return $sanitized;
     }
 
     private function getDefaultPolicies(): array

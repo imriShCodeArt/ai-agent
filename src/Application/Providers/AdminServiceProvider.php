@@ -26,9 +26,16 @@ final class AdminServiceProvider extends AbstractServiceProvider implements Hook
         $settings = $this->container->get(Settings::class);
         $adminMenu = $this->container->get(AdminMenu::class);
 
-        add_action('admin_menu', [$adminMenu, 'addMenuPage']);
-        add_action('admin_init', [$settings, 'registerSettings']);
-        add_action('admin_init', [$settings, 'addSettingsPage']);
+        /** @var callable(): mixed $addMenuPageCallback */
+        $addMenuPageCallback = [$adminMenu, 'addMenuPage'];
+        /** @var callable(): mixed $registerSettingsCallback */
+        $registerSettingsCallback = [$settings, 'registerSettings'];
+        /** @var callable(): mixed $addSettingsPageCallback */
+        $addSettingsPageCallback = [$settings, 'addSettingsPage'];
+
+        add_action('admin_menu', $addMenuPageCallback);
+        add_action('admin_init', $registerSettingsCallback);
+        add_action('admin_init', $addSettingsPageCallback);
     }
 
     public function addHooks(): void

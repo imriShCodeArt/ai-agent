@@ -1,14 +1,62 @@
 <?xml version="1.0"?>
-<ruleset name="ai-agent">
-	<description>PHPCS rules for AI Agent</description>
-	<file>./</file>
-	<exclude-pattern>vendor/*</exclude-pattern>
-	<exclude-pattern>node_modules/*</exclude-pattern>
-	<exclude-pattern>tests/*</exclude-pattern>
-	<arg name="extensions" value="php,inc"/>
-	<rule ref="WordPress-Extra"/>
-	<rule ref="WordPress-Docs"/>
-	<config name="testVersion" value="7.4-"/>
+<ruleset name="AI Agent Plugin">
+    <description>WordPress coding standards for AI Agent plugin</description>
+
+    <!-- What to scan -->
+    <file>src</file>
+    <file>tests</file>
+    <file>ai-agent.php</file>
+    <file>uninstall.php</file>
+
+    <!-- Exclude vendor and other directories -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/coverage/*</exclude-pattern>
+
+    <!-- How to scan -->
+    <arg name="colors"/>
+    <arg name="parallel" value="75"/>
+    <arg value="p"/>
+
+    <!-- Rules: Check WordPress Coding Standards -->
+    <rule ref="WordPress"/>
+
+    <!-- Check that everything is in the correct namespace -->
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array" value="AIAgent"/>
+        </properties>
+    </rule>
+
+    <!-- Allow short array syntax -->
+    <rule ref="Generic.Arrays.DisallowShortArraySyntax"/>
+
+    <!-- Check PHP version compatibility -->
+    <rule ref="Generic.PHP.DisallowShortOpenTag">
+        <severity>5</severity>
+    </rule>
+
+    <!-- Check for TODO comments -->
+    <rule ref="Generic.Commenting.Todo"/>
+
+    <!-- Check for debugging code -->
+    <rule ref="Squiz.PHP.DiscouragedFunctions">
+        <properties>
+            <property name="forbiddenFunctions" type="array">
+                <element key="print_r" value="null"/>
+                <element key="var_dump" value="null"/>
+                <element key="var_export" value="null"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Exclude some rules for test files -->
+    <rule ref="WordPress.NamingConventions.ValidFunctionName">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+
+    <!-- Allow camelCase in test methods -->
+    <rule ref="WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
 </ruleset>
-
-

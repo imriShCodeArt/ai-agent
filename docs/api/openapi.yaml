@@ -1,0 +1,269 @@
+openapi: 3.0.3
+info:
+  title: AI Agent Plugin API
+  description: |
+    REST API for the AI Agent WordPress plugin that provides AI-powered content management capabilities.
+    
+    This API allows users to interact with AI agents for content creation, editing, and management
+    through a secure and policy-controlled interface.
+  version: 1.0.0
+  contact:
+    name: AI Agent Plugin Support
+    email: support@aiagent-plugin.com
+  license:
+    name: GPL-2.0-or-later
+    url: https://www.gnu.org/licenses/gpl-2.0.html
+
+servers:
+  - url: /wp-json/ai-agent/v1
+    description: WordPress REST API endpoint
+
+security:
+  - WordPressAuth: []
+  - NonceAuth: []
+
+paths:
+  /chat:
+    post:
+      summary: Send a chat message to the AI agent
+      description: |
+        Send a prompt to the AI agent and receive a response with suggested actions.
+        The AI agent can analyze the prompt and suggest various content management operations.
+      operationId: chat
+      security:
+        - WordPressAuth: []
+        - NonceAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prompt
+              properties:
+                prompt:
+                  type: string
+                  description: The user's prompt or question for the AI agent
+                  example: "Create a new blog post about WordPress security best practices"
+                  maxLength: 2000
+                mode:
+                  type: string
+                  description: The interaction mode with the AI agent
+                  enum: [suggest, autonomous, review]
+                  default: suggest
+                  example: suggest
+                session_id:
+                  type: string
+                  description: Unique session identifier for conversation continuity
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Successful chat response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        description: The AI agent's response message
+                        example: "I'll help you create a blog post about WordPress security best practices."
+                      suggested_actions:
+                        type: array
+                        description: List of suggested actions the AI agent recommends
+                        items:
+                          $ref: '#/components/schemas/SuggestedAction'
+                      mode:
+                        type: string
+                        example: suggest
+                  session_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dry-run:
+    post:
+      summary: Preview changes before execution
+      description: |
+        Perform a dry run of a specific tool operation to preview what changes
+        would be made without actually executing them.
+      operationId: dryRun
+      security:
+        - WordPressAuth: []
+        - NonceAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tool
+              properties:
+                tool:
+                  type: string
+                  description: The tool/operation to preview
+                  example: "posts.create"
+                entity_id:
+                  type: integer
+                  description: ID of the entity to modify (for update/delete operations)
+                  example: 123
+                fields:
+                  type: object
+                  description: Fields to be modified
+                  additionalProperties: true
+                  example:
+                    post_title: "New Post Title"
+                    post_content: "New post content"
+      responses:
+        '200':
+          description: Successful dry run response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      allowed:
+                        type: boolean
+                        description: Whether the operation is allowed by policy
+                        example: true
+                      diff:
+                        type: string
+                        description: HTML diff showing proposed changes
+                        example: "<div class='diff'>...</div>"
+                      policy_verdict:
+                        type: object
+                        description: Policy information for the tool
+                        additionalProperties: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    SuggestedAction:
+      type: object
+      properties:
+        tool:
+          type: string
+          description: The tool/operation to execute
+          example: "posts.create"
+        description:
+          type: string
+          description: Human-readable description of the action
+          example: "Create a new blog post"
+        parameters:
+          type: object
+          description: Parameters for the action
+          additionalProperties: true
+          example:
+            post_title: "WordPress Security Best Practices"
+            post_content: "Content about security..."
+            post_status: "draft"
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code
+          example: "missing_prompt"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Prompt is required"
+        data:
+          type: object
+          properties:
+            status:
+              type: integer
+              description: HTTP status code
+              example: 400
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "missing_prompt"
+            message: "Prompt is required"
+            data:
+              status: 400
+
+    Unauthorized:
+      description: Unauthorized - user not logged in
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "unauthorized"
+            message: "User must be logged in"
+            data:
+              status: 401
+
+    Forbidden:
+      description: Forbidden - insufficient permissions or invalid nonce
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "insufficient_permissions"
+            message: "Insufficient permissions to use AI Agent"
+            data:
+              status: 403
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "chat_failed"
+            message: "Failed to process chat request"
+            data:
+              status: 500
+
+  securitySchemes:
+    WordPressAuth:
+      type: http
+      scheme: bearer
+      description: WordPress user authentication
+
+    NonceAuth:
+      type: apiKey
+      in: header
+      name: X-WP-Nonce
+      description: WordPress nonce for CSRF protection
