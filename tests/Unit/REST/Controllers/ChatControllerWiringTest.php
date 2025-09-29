@@ -8,6 +8,7 @@ use AIAgent\Infrastructure\Audit\AuditLogger;
 use AIAgent\Support\Logger;
 use AIAgent\Infrastructure\LLM\LLMProviderInterface;
 use AIAgent\Infrastructure\Tools\ToolExecutionEngine;
+use AIAgent\Infrastructure\Tools\ToolRegistry;
 
 final class ChatControllerWiringTest extends TestCase
 {
@@ -19,9 +20,8 @@ final class ChatControllerWiringTest extends TestCase
         $llm = new class implements LLMProviderInterface {
             public function complete(string $prompt, array $options = []): string { return 'summary'; }
         };
-        $engine = $this->createMock(ToolExecutionEngine::class);
-        // Do not actually run tools in unit test
-        $engine->method('run')->willReturn(['summary' => 'ok']);
+        // Use a minimal real engine with empty registry for wiring test
+        $engine = new ToolExecutionEngine(new ToolRegistry(), $policy, new \AIAgent\Infrastructure\Security\Capabilities(), $audit);
 
         $controller = new ChatController($policy, $audit, $logger, $llm, $engine);
 
