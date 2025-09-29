@@ -31,17 +31,24 @@ final class ToolExecutionEngine
     public function run(string $toolName, array $input): array
     {
         // Basic capability and policy check placeholders; real checks can be expanded
-        if (!$this->capabilities->currentUserCan('ai_agent_execute_tool')) {
+        if (!current_user_can(Capabilities::EXECUTE_TOOL)) {
             return ['error' => 'forbidden'];
         }
-        if (!$this->policy->isAllowed('tool', $toolName, $input)) {
+        // Policy expects (tool, ?int $entityId, array $fields)
+        $entityId = isset($input['entity_id']) && is_numeric($input['entity_id']) ? (int) $input['entity_id'] : null;
+        $fields = isset($input['fields']) && is_array($input['fields']) ? $input['fields'] : [];
+        if (!$this->policy->isAllowed($toolName, $entityId, $fields)) {
             return ['error' => 'policy_denied'];
         }
 
         $tool = $this->registry->get($toolName);
-        $this->auditLogger->log('tool_execute', ['tool' => $toolName, 'input' => $input]);
+        // Minimal audit trail compatible with AuditLogger API
+        $userId = get_current_user_id();
+        $mode = is_string($input['mode'] ?? null) ? (string) $input['mode'] : 'suggest';
+        $entityType = is_string($input['entity_type'] ?? null) ? (string) $input['entity_type'] : 'generic';
+        $this->auditLogger->logAction($toolName, (int) $userId, $entityType, $entityId, $mode, $input, 'started');
         $result = $tool->execute($input);
-        $this->auditLogger->log('tool_result', ['tool' => $toolName, 'result' => $result]);
+        $this->auditLogger->logAction($toolName, (int) $userId, $entityType, $entityId, $mode, $result, 'completed');
         return $result;
     }
 }
