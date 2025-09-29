@@ -346,9 +346,8 @@ final class ChatWidget
                 .then(r => r.json())
                 .then(data => {
                     if (!data.success) throw new Error(data.message || 'Policy denied or error');
-                    // If allowed and autonomous, we could hit an execute endpoint; for now show diff
+                    // If allowed, execute immediately
                     addMessage('Dry run allowed. Diff preview:\n' + (data.data.diff || 'No diff'), 'system');
-                    // Execute after dry run
                     return fetch('/wp-json/ai-agent/v1/execute', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
