@@ -29,6 +29,16 @@ final class Validator
             if ($type === 'string' && !is_string($input[$name])) { return false; }
             if ($type === 'integer' && !is_int($input[$name])) { return false; }
             if ($type === 'object' && !is_array($input[$name])) { return false; }
+
+            // minLength for strings
+            if ($type === 'string' && isset($rules['minLength']) && is_int($rules['minLength'])) {
+                if (mb_strlen((string) $input[$name]) < $rules['minLength']) { return false; }
+            }
+
+            // enum constraint
+            if (isset($rules['enum']) && is_array($rules['enum'])) {
+                if (!in_array($input[$name], $rules['enum'], true)) { return false; }
+            }
         }
         return true;
     }
