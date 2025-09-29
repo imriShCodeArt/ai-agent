@@ -1,0 +1,37 @@
+repos:
+  - repo: local
+    hooks:
+      - id: php-cs-fixer
+        name: PHP CS Fixer
+        entry: composer cs-fix
+        language: system
+        files: \.php$
+        pass_filenames: false
+
+      - id: phpstan
+        name: PHPStan
+        entry: composer phpstan
+        language: system
+        files: \.php$
+        pass_filenames: false
+
+      - id: psalm
+        name: Psalm
+        entry: composer psalm
+        language: system
+        files: \.php$
+        pass_filenames: false
+
+      - id: phpunit
+        name: PHPUnit
+        entry: composer test
+        language: system
+        files: \.php$
+        pass_filenames: false
+
+      - id: security-scan
+        name: Security Scan
+        entry: composer security-scan
+        language: system
+        files: composer\.(json|lock)$
+        pass_filenames: false

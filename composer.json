@@ -30,6 +30,7 @@
     "test-coverage": "phpunit -c phpunit.xml.dist --coverage-html coverage --coverage-clover coverage.xml",
     "test-performance": "phpunit -c phpunit.xml.dist --group performance",
     "cs-fix": "phpcbf --standard=phpcs.xml.dist --extensions=php,inc",
-    "security-scan": "composer audit"
+    "security-scan": "php scripts/security-audit.php",
+    "audit": "composer audit"
   }
 }

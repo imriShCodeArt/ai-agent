@@ -1,5 +1,5 @@
 parameters:
-  level: 6
+  level: 8
   paths:
     - src
   bootstrapFiles:
@@ -18,7 +18,12 @@ parameters:
     - '#Method .* has invalid return type WP_.*\.#'
     - '#Parameter .* of method .* has invalid type WP_.*\.#'
     - '#Instantiated class WP_.* not found\.#'
+    - '#WordPress function .* not found\.#'
+    - '#WordPress constant .* not found\.#'
   stubFiles:
     - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+  checkMissingIterableValueType: true
+  checkGenericClassInNonGenericObjectType: true
+  reportUnmatchedIgnoredErrors: false
 
 
