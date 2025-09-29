@@ -36,12 +36,8 @@ class PluginActivationTest extends TestCase
 
     public function testMigrationManagerCanBeInstantiated(): void
     {
-        // Create a mock logger for testing
-        $logger = new class {
-            public function info(string $message, array $context = []): void {}
-            public function error(string $message, array $context = []): void {}
-            public function warning(string $message, array $context = []): void {}
-        };
+        // Use the actual Logger class
+        $logger = new \AIAgent\Support\Logger();
         
         $migrationManager = new MigrationManager($logger);
         $this->assertInstanceOf(MigrationManager::class, $migrationManager);

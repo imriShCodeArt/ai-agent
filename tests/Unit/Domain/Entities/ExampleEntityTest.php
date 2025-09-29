@@ -24,9 +24,11 @@ class ExampleEntityTest extends TestCase
     public function testEntityPropertiesHaveExpectedTypes(): void
     {
         $entity = new ExampleEntity();
+        $entity->id = 123; // Initialize the typed property
         
         // Test property types
         $this->assertIsInt($entity->id);
+        $this->assertEquals(123, $entity->id);
     }
 
     public function testEntityCanBeSerialized(): void
