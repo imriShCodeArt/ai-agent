@@ -10,9 +10,9 @@ This document outlines the recommended merge strategies for the AI Agent WordPre
 - **Result**: Each feature becomes one clean commit
 
 ### **Development Branch → Main Branch**
-- **Strategy**: Merge Commit
-- **Reason**: Preserves complete development history, clear release boundaries
-- **Result**: Complete audit trail of all development work
+- **Strategy**: Squash Merge
+- **Reason**: Repository policy requires squash merge for main branch
+- **Result**: Clean main branch history with single commit per feature set
 
 ## 📋 Branch Protection Rules
 
@@ -51,21 +51,21 @@ gh pr create --base development --head feature/new-feature
 - Use "Squash and merge" button
 - Feature branch becomes one clean commit in development
 
-### **3. Development → Main (Merge Commit)**
+### **3. Development → Main (Squash Merge)**
 - Create PR from development to main
-- Use "Create a merge commit" button
-- Preserves all development history
+- Use "Squash and merge" button (only option available)
+- Creates clean single commit in main branch
 
 ## ⚙️ GitHub Settings
 
 ### **Repository Settings**
 - **Allow squash merging**: ✅ Enabled
-- **Allow merge commits**: ✅ Enabled
+- **Allow merge commits**: ❌ Disabled (main branch policy)
 - **Allow rebase merging**: ✅ Enabled (but not recommended)
 
 ### **Default Merge Method**
 - **Feature → Development**: Squash merge
-- **Development → Main**: Merge commit
+- **Development → Main**: Squash merge (only option available)
 
 ## 🎯 Benefits
 
@@ -75,11 +75,11 @@ gh pr create --base development --head feature/new-feature
 - ✅ Simple rollbacks
 - ✅ Professional commit messages
 
-### **Merge Commit (Development → Main)**
-- ✅ Complete development audit trail
-- ✅ Clear release boundaries
-- ✅ Easy to see what's in each release
-- ✅ Safe rollbacks
+### **Squash Merge (Development → Main)**
+- ✅ Clean main branch history
+- ✅ Single commit per feature set
+- ✅ Easy to track releases
+- ✅ Simplified rollbacks
 
 ## 📝 Commit Message Standards
 
@@ -91,10 +91,18 @@ docs: update API documentation
 refactor: improve code structure
 ```
 
-### **Release Commits (Merge Committed)**
+### **Release Commits (Squash Merged)**
 ```
-Merge pull request #123 from imriShCodeArt/development
-Release v1.2.0 - User Authentication & API Improvements
+feat: complete Phase 1 Foundation Stabilization
+
+- Add comprehensive testing infrastructure with 90%+ coverage
+- Implement code quality tools (PHPStan Level 8, Psalm, PHPCS)
+- Add security hardening and audit capabilities
+- Create complete documentation (PHPDoc, API specs, Developer Guide)
+- Fix release workflow conflicts
+- Establish automated CI/CD pipeline
+
+Release v0.2.1 - Phase 1 Foundation Stabilization Complete
 ```
 
 ## 🔧 CI/CD Integration
@@ -104,14 +112,20 @@ Both development and main branches require:
 - **No Reviews Required**: Streamlined workflow
 - **Linear History**: Clean, readable history
 
+### **Release Workflow**
+- **Auto-version workflow**: Handles automatic releases on main branch
+- **Release workflow**: Disabled to prevent conflicts
+- **Version bumping**: Update version in `ai-agent.php` to trigger release
+
 ## 📚 Best Practices
 
 1. **Always use PRs** for merging
 2. **Squash feature branches** to development
-3. **Merge commit** development to main
+3. **Squash merge** development to main (only option available)
 4. **Keep feature branches** until you decide to delete them
 5. **Use conventional commits** for clear history
 6. **Test before merging** (CI handles this)
+7. **Resolve conflicts** before merging (merge conflicts prevent merging)
 
 ---
 
