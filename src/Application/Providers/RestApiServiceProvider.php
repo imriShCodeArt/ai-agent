@@ -15,6 +15,8 @@ use AIAgent\Infrastructure\Tools\ToolRegistry;
 use AIAgent\Infrastructure\Tools\ToolExecutionEngine;
 use AIAgent\Infrastructure\Security\Capabilities;
 use AIAgent\Infrastructure\Tools\TextSummarizeTool;
+use AIAgent\Infrastructure\Tools\PostsCreateTool;
+use AIAgent\Infrastructure\Tools\PostsUpdateTool;
 
 final class RestApiServiceProvider extends AbstractServiceProvider implements HookableInterface
 {
@@ -66,6 +68,8 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
             $registry = new ToolRegistry();
             // Register built-in tools
             $registry->register(new TextSummarizeTool($this->container->get(LLMProviderInterface::class)));
+            $registry->register(new PostsCreateTool());
+            $registry->register(new PostsUpdateTool());
             return $registry;
         });
 

@@ -31,7 +31,7 @@ final class ToolExecutionEngine
     public function run(string $toolName, array $input): array
     {
         // Basic capability and policy check placeholders; real checks can be expanded
-        if (!current_user_can(Capabilities::EXECUTE_TOOL)) {
+        if (function_exists('current_user_can') && !current_user_can(Capabilities::EXECUTE_TOOL)) {
             return ['error' => 'forbidden'];
         }
         // Policy expects (tool, ?int $entityId, array $fields)
@@ -43,12 +43,16 @@ final class ToolExecutionEngine
 
         $tool = $this->registry->get($toolName);
         // Minimal audit trail compatible with AuditLogger API
-        $userId = get_current_user_id();
+        $userId = function_exists('get_current_user_id') ? get_current_user_id() : 0;
         $mode = is_string($input['mode'] ?? null) ? (string) $input['mode'] : 'suggest';
         $entityType = is_string($input['entity_type'] ?? null) ? (string) $input['entity_type'] : 'generic';
-        $this->auditLogger->logAction($toolName, (int) $userId, $entityType, $entityId, $mode, $input, 'started');
+        if (isset($GLOBALS['wpdb'])) {
+            $this->auditLogger->logAction($toolName, (int) $userId, $entityType, $entityId, $mode, $input, 'started');
+        }
         $result = $tool->execute($input);
-        $this->auditLogger->logAction($toolName, (int) $userId, $entityType, $entityId, $mode, $result, 'completed');
+        if (isset($GLOBALS['wpdb'])) {
+            $this->auditLogger->logAction($toolName, (int) $userId, $entityType, $entityId, $mode, $result, 'completed');
+        }
         return $result;
     }
 }
