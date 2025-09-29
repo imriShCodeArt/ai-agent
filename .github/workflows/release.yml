@@ -1,8 +1,9 @@
 name: Release
 
 on:
-  push:
-    branches: [ main ]
+  # Disabled - auto-version.yml handles releases automatically
+  # push:
+  #   branches: [ main ]
   workflow_dispatch:
 
 permissions:
