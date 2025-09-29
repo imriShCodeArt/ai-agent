@@ -13,8 +13,8 @@ final class ChatControllerWiringTest extends TestCase
 {
     public function testProcessPromptReturnsStructure(): void
     {
-        $policy = $this->createMock(Policy::class);
-        $audit = $this->createMock(AuditLogger::class);
+        $policy = new Policy(new Logger());
+        $audit = new AuditLogger(new Logger());
         $logger = new Logger();
         $llm = new class implements LLMProviderInterface {
             public function complete(string $prompt, array $options = []): string { return 'summary'; }

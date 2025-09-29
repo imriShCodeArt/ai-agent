@@ -8,6 +8,7 @@ use AIAgent\Infrastructure\Tools\ToolInterface;
 use AIAgent\Infrastructure\Security\Policy;
 use AIAgent\Infrastructure\Security\Capabilities;
 use AIAgent\Infrastructure\Audit\AuditLogger;
+use AIAgent\Support\Logger;
 
 final class ToolExecutionEngineTest extends TestCase
 {
@@ -21,10 +22,10 @@ final class ToolExecutionEngineTest extends TestCase
         };
         $registry->register($tool);
 
-        $policy = $this->createMock(Policy::class);
-        $policy->method('isAllowed')->willReturn(false);
-        $cap = $this->createMock(Capabilities::class);
-        $audit = $this->createMock(AuditLogger::class);
+        // Use real instances for final classes
+        $policy = new Policy(new Logger());
+        $cap = new Capabilities();
+        $audit = new AuditLogger(new Logger());
 
         $engine = new ToolExecutionEngine($registry, $policy, $cap, $audit);
         $result = $engine->run('noop', ['fields' => []]);
