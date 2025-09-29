@@ -2,6 +2,8 @@
 
 A powerful WordPress plugin that provides AI-powered content management capabilities through a secure, policy-controlled interface.
 
+<!-- Test commit for workflow verification -->
+
 ## 🚀 Features
 
 - **AI-Powered Content Management**: Create, edit, and manage content using AI assistance
