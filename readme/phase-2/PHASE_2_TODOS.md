@@ -46,7 +46,7 @@ Phase 2 focuses on integrating LLM providers behind a clean abstraction, impleme
 - [x] Schema validation tests (minLength, enum)
 - [x] Capability/permission tests
 - [x] Policy enforcement tests
-- [ ] Audit logs
+- [x] Audit logs
 
 ---
 
@@ -59,13 +59,13 @@ Phase 2 focuses on integrating LLM providers behind a clean abstraction, impleme
 - [x] Surface tool suggestions in UI
 - [x] Display LLM message and suggested actions
 - [x] Execute suggested actions from UI
-- [ ] Long-running status handling/polling
+- [x] Long-running status handling/polling
 - [x] Responsive basic UI pattern
 
 ### Testing
-- [ ] Snapshot/UI tests
-- [ ] Accessibility checks (WCAG 2.1 AA)
-- [ ] Error-path flows
+- [x] Snapshot/UI tests
+- [x] Accessibility checks (WCAG 2.1 AA)
+- [x] Error-path flows
 
 ---
 
