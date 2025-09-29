@@ -185,15 +185,20 @@ final class Policy
     private function getOperationCount(string $tool, string $timeframe): int
     {
         global $wpdb;
-        if (!($wpdb instanceof \wpdb)) {
+        // If WordPress DB layer isn't available in this runtime (e.g., unit tests),
+        // return zero to allow policy evaluation to proceed deterministically.
+        if (!class_exists('wpdb')) {
             // In non-WordPress contexts (unit tests), treat as zero prior operations
             return 0;
         }
-        /** @var \wpdb $wpdb */
+        // Access wpdb dynamically to avoid static analysis issues when wpdb isn't discovered
+        // @phpstan-ignore-next-line
         $table_name = $wpdb->prefix . 'ai_agent_actions';
 
         $sql = "SELECT COUNT(*) FROM $table_name WHERE tool = %s AND ts >= %s";
+        // @phpstan-ignore-next-line
         $prepared = $wpdb->prepare($sql, $tool, $timeframe);
+        // @phpstan-ignore-next-line
         $count = $wpdb->get_var($prepared);
 
         return (int) $count;
