@@ -9,6 +9,14 @@ use AIAgent\REST\Controllers\LogsController;
 use AIAgent\Infrastructure\Security\Policy;
 use AIAgent\Infrastructure\Audit\AuditLogger;
 use AIAgent\Support\Logger;
+use AIAgent\Infrastructure\LLM\LLMProviderInterface;
+use AIAgent\Infrastructure\LLM\OpenAIProvider;
+use AIAgent\Infrastructure\Tools\ToolRegistry;
+use AIAgent\Infrastructure\Tools\ToolExecutionEngine;
+use AIAgent\Infrastructure\Security\Capabilities;
+use AIAgent\Infrastructure\Tools\TextSummarizeTool;
+use AIAgent\Infrastructure\Tools\PostsCreateTool;
+use AIAgent\Infrastructure\Tools\PostsUpdateTool;
 
 final class RestApiServiceProvider extends AbstractServiceProvider implements HookableInterface
 {
@@ -27,7 +35,9 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
             return new ChatController(
                 $this->container->get(Policy::class),
                 $this->container->get(AuditLogger::class),
-                $this->container->get(Logger::class)
+                $this->container->get(Logger::class),
+                $this->container->get(LLMProviderInterface::class),
+                $this->container->get(ToolExecutionEngine::class)
             );
         });
 
@@ -43,6 +53,32 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
             return new LogsController(
                 $this->container->get(AuditLogger::class),
                 $this->container->get(Logger::class)
+            );
+        });
+
+        // LLM Provider default binding (OpenAI; can be swapped later)
+        $this->container->singleton(LLMProviderInterface::class, function () {
+            $logger = $this->container->get(Logger::class);
+            $apiKey = (string) get_option('ai_agent_openai_api_key', '');
+            return new OpenAIProvider($logger, $apiKey);
+        });
+
+        // Tool system services
+        $this->container->singleton(ToolRegistry::class, function () {
+            $registry = new ToolRegistry();
+            // Register built-in tools
+            $registry->register(new TextSummarizeTool($this->container->get(LLMProviderInterface::class)));
+            $registry->register(new PostsCreateTool());
+            $registry->register(new PostsUpdateTool());
+            return $registry;
+        });
+
+        $this->container->singleton(ToolExecutionEngine::class, function () {
+            return new ToolExecutionEngine(
+                $this->container->get(ToolRegistry::class),
+                $this->container->get(Policy::class),
+                $this->container->get(Capabilities::class),
+                $this->container->get(AuditLogger::class)
             );
         });
     }
@@ -98,6 +134,32 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
                 'fields' => [
                     'required' => false,
                     'type' => 'object',
+                ],
+            ],
+        ]);
+
+        register_rest_route('ai-agent/v1', '/execute', [
+            'methods' => 'POST',
+            'callback' => [$chatController, 'execute'],
+            'permission_callback' => [$this, 'checkChatPermissions'],
+            'args' => [
+                'tool' => [
+                    'required' => true,
+                    'type' => 'string',
+                ],
+                'entity_id' => [
+                    'required' => false,
+                    'type' => 'integer',
+                ],
+                'fields' => [
+                    'required' => false,
+                    'type' => 'object',
+                ],
+                'mode' => [
+                    'required' => false,
+                    'type' => 'string',
+                    'enum' => ['suggest', 'review', 'autonomous'],
+                    'default' => 'autonomous',
                 ],
             ],
         ]);

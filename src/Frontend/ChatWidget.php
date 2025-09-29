@@ -335,14 +335,29 @@ final class ChatWidget
             }
 
             function executeAction(action) {
-                addMessage(`Executing: ${action.description}`, 'system');
+                addMessage(`Executing: ${action.description || action.tool}`, 'system');
                 setLoading(true);
 
-                // For now, just show a placeholder
-                setTimeout(() => {
-                    setLoading(false);
-                    addMessage('Action execution not yet implemented. This would execute the ' + action.tool + ' tool.', 'system');
-                }, 1000);
+                fetch('/wp-json/ai-agent/v1/dry-run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
+                    body: JSON.stringify({ tool: action.tool, fields: action.parameters || {} })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) throw new Error(data.message || 'Policy denied or error');
+                    // If allowed, execute immediately
+                    addMessage('Dry run allowed. Diff preview:\n' + (data.data.diff || 'No diff'), 'system');
+                    return fetch('/wp-json/ai-agent/v1/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
+                        body: JSON.stringify({ tool: action.tool, fields: action.parameters || {}, mode: 'autonomous' })
+                    });
+                })
+                .then(r => r ? r.json() : null)
+                .then(exec => { if (exec && exec.success) { addMessage('Execution result: ' + JSON.stringify(exec.data), 'system'); } })
+                .catch(e => addMessage('Execution error: ' + e.message, 'error'))
+                .finally(() => setLoading(false));
             }
 
             function setLoading(loading) {
