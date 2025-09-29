@@ -218,6 +218,11 @@ final class Policy
         // Remove any non-alphanumeric characters except dots and underscores
         $sanitized = preg_replace('/[^a-zA-Z0-9._-]/', '', $tool);
         
+        // Ensure we have a string before using substr
+        if ($sanitized === null) {
+            $sanitized = '';
+        }
+        
         // Limit length to prevent buffer overflow
         return substr($sanitized, 0, 50);
     }
