@@ -185,17 +185,16 @@ final class Policy
     private function getOperationCount(string $tool, string $timeframe): int
     {
         global $wpdb;
-        if (!isset($wpdb) || !is_object($wpdb) || !property_exists($wpdb, 'prefix')) {
+        if (!($wpdb instanceof \wpdb)) {
             // In non-WordPress contexts (unit tests), treat as zero prior operations
             return 0;
         }
+        /** @var \wpdb $wpdb */
         $table_name = $wpdb->prefix . 'ai_agent_actions';
 
-        $count = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM $table_name WHERE tool = %s AND ts >= %s",
-            $tool,
-            $timeframe
-        ));
+        $sql = "SELECT COUNT(*) FROM $table_name WHERE tool = %s AND ts >= %s";
+        $prepared = $wpdb->prepare($sql, $tool, $timeframe);
+        $count = $wpdb->get_var($prepared);
 
         return (int) $count;
     }
