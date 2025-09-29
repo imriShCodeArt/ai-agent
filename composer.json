@@ -15,7 +15,9 @@
     "phpstan/phpstan": "^1.11",
     "squizlabs/php_codesniffer": "^3.10",
     "phpunit/phpunit": "^9.6",
-    "php-stubs/wordpress-stubs": "^6.5"
+    "php-stubs/wordpress-stubs": "^6.5",
+    "vimeo/psalm": "^5.0",
+    "brain/monkey": "^2.6"
   },
   "scripts": {
     "lint": [
@@ -23,6 +25,11 @@
     ],
     "phpcs": "phpcs -q --standard=phpcs.xml.dist --extensions=php,inc --report=full --runtime-set ignore_warnings_on_exit 1",
     "phpstan": "phpstan analyse -c phpstan.neon.dist --no-progress",
-    "test": "phpunit -c phpunit.xml.dist"
+    "psalm": "psalm --config=psalm.xml --no-progress",
+    "test": "phpunit -c phpunit.xml.dist",
+    "test-coverage": "phpunit -c phpunit.xml.dist --coverage-html coverage --coverage-clover coverage.xml",
+    "test-performance": "phpunit -c phpunit.xml.dist --group performance",
+    "cs-fix": "phpcbf --standard=phpcs.xml.dist --extensions=php,inc",
+    "security-scan": "composer audit"
   }
 }
