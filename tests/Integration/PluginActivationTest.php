@@ -36,7 +36,14 @@ class PluginActivationTest extends TestCase
 
     public function testMigrationManagerCanBeInstantiated(): void
     {
-        $migrationManager = new MigrationManager();
+        // Create a mock logger for testing
+        $logger = new class {
+            public function info(string $message, array $context = []): void {}
+            public function error(string $message, array $context = []): void {}
+            public function warning(string $message, array $context = []): void {}
+        };
+        
+        $migrationManager = new MigrationManager($logger);
         $this->assertInstanceOf(MigrationManager::class, $migrationManager);
     }
 

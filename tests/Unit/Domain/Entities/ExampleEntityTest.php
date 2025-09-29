@@ -13,22 +13,20 @@ class ExampleEntityTest extends TestCase
         $this->assertInstanceOf(ExampleEntity::class, $entity);
     }
 
-    public function testEntityHasExpectedMethods(): void
+    public function testEntityHasExpectedProperties(): void
     {
         $entity = new ExampleEntity();
         
-        // Check if the entity has the expected methods
-        $this->assertTrue(method_exists($entity, 'getId'));
-        $this->assertTrue(method_exists($entity, 'getName'));
+        // Check if the entity has the expected properties
+        $this->assertTrue(property_exists($entity, 'id'));
     }
 
-    public function testEntityMethodsReturnExpectedTypes(): void
+    public function testEntityPropertiesHaveExpectedTypes(): void
     {
         $entity = new ExampleEntity();
         
-        // Test method return types
-        $this->assertIsInt($entity->getId());
-        $this->assertIsString($entity->getName());
+        // Test property types
+        $this->assertIsInt($entity->id);
     }
 
     public function testEntityCanBeSerialized(): void

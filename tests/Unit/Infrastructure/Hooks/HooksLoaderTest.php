@@ -32,12 +32,12 @@ class HooksLoaderTest extends TestCase
         $this->hooksLoader->register();
     }
 
-    public function testAddHookableMethodExists(): void
+    public function testAddMethodExists(): void
     {
-        $this->assertTrue(method_exists($this->hooksLoader, 'addHookable'));
+        $this->assertTrue(method_exists($this->hooksLoader, 'add'));
     }
 
-    public function testAddHookableAcceptsHookableInterface(): void
+    public function testAddAcceptsHookableInterface(): void
     {
         $hookable = new class implements \AIAgent\Infrastructure\Hooks\HookableInterface {
             public function addHooks(): void {}
@@ -46,6 +46,6 @@ class HooksLoaderTest extends TestCase
         $this->expectNotToPerformAssertions();
         
         // Should accept objects implementing HookableInterface
-        $this->hooksLoader->addHookable($hookable);
+        $this->hooksLoader->add($hookable);
     }
 }
