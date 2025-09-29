@@ -4,6 +4,8 @@ namespace AIAgent\REST\Controllers;
 
 use AIAgent\Infrastructure\Audit\AuditLogger;
 use AIAgent\Infrastructure\Security\Policy;
+use AIAgent\Infrastructure\LLM\LLMProviderInterface;
+use AIAgent\Infrastructure\Tools\ToolExecutionEngine;
 use AIAgent\Support\Logger;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -14,15 +16,21 @@ final class ChatController extends BaseRestController
     private Policy $policy;
     private AuditLogger $auditLogger;
     private Logger $logger;
+    private LLMProviderInterface $llm;
+    private ToolExecutionEngine $engine;
 
     public function __construct(
         Policy $policy,
         AuditLogger $auditLogger,
-        Logger $logger
+        Logger $logger,
+        LLMProviderInterface $llm,
+        ToolExecutionEngine $engine
     ) {
         $this->policy = $policy;
         $this->auditLogger = $auditLogger;
         $this->logger = $logger;
+        $this->llm = $llm;
+        $this->engine = $engine;
     }
 
     public function chat(WP_REST_Request $request): WP_REST_Response|WP_Error
@@ -224,49 +232,71 @@ final class ChatController extends BaseRestController
         }
     }
 
+    public function execute(WP_REST_Request $request): WP_REST_Response|WP_Error
+    {
+        if (!wp_verify_nonce($request->get_header('X-WP-Nonce'), 'wp_rest')) {
+            return new WP_Error('invalid_nonce', 'Invalid nonce provided', ['status' => 403]);
+        }
+        if (!current_user_can('ai_agent_read')) {
+            return new WP_Error('insufficient_permissions', 'Insufficient permissions', ['status' => 403]);
+        }
+
+        $tool = sanitize_text_field($request->get_param('tool'));
+        $entityId = $request->get_param('entity_id');
+        $fields = $request->get_param('fields') ?? [];
+        $mode = sanitize_text_field($request->get_param('mode') ?? 'autonomous');
+
+        $entityId = $entityId ? (int) $entityId : null;
+        $fields = is_array($fields) ? $fields : [];
+
+        // Run via engine
+        $result = $this->engine->run($tool, [
+            'fields' => $fields,
+            'entity_id' => $entityId,
+            'entity_type' => 'generic',
+            'mode' => $mode,
+        ]);
+
+        if (isset($result['error'])) {
+            return new WP_Error('execute_failed', (string) ($result['message'] ?? $result['error']), ['status' => 400]);
+        }
+
+        return new WP_REST_Response(['success' => true, 'data' => $result]);
+    }
+
     private function processPrompt(string $prompt, string $mode, string $sessionId, int $userId): array
     {
-        // This is a placeholder implementation
-        // In a real implementation, this would:
-        // 1. Send the prompt to an external LLM service
-        // 2. Parse the LLM response for tool calls
-        // 3. Execute the tools if in autonomous mode
-        // 4. Return the response with suggested actions
+        // Ask the LLM for a suggested summary and tools
+        $llmResult = $this->llm->complete('Summarize user intent and propose a tool if relevant: ' . $prompt);
 
-        $response = [
-            'message' => 'This is a placeholder response. The AI Agent is not yet connected to an LLM service.',
-            'suggested_actions' => [],
+        $suggestedActions = [];
+        // naive rule: if prompt mentions "summarize", suggest text.summarize
+        if (stripos($prompt, 'summarize') !== false || stripos($llmResult, 'summary') !== false) {
+            $suggestedActions[] = [
+                'tool' => 'text.summarize',
+                'parameters' => [
+                    'content' => $prompt,
+                    'length' => 'short',
+                ],
+            ];
+        }
+
+        $executed = null;
+        if ($mode === 'autonomous' && !empty($suggestedActions)) {
+            $first = $suggestedActions[0];
+            $executed = $this->engine->run($first['tool'], [
+                'fields' => $first['parameters'],
+                'entity_type' => 'text',
+                'mode' => $mode,
+            ]);
+        }
+
+        return [
+            'message' => $llmResult,
+            'suggested_actions' => $suggestedActions,
+            'executed' => $executed,
             'mode' => $mode,
         ];
-
-        // Example suggested actions based on prompt analysis
-        if (stripos($prompt, 'create') !== false && stripos($prompt, 'post') !== false) {
-            $response['suggested_actions'][] = [
-                'tool' => 'posts.create',
-                'description' => 'Create a new post',
-                'parameters' => [
-                    'post_title' => 'New Post Title',
-                    'post_content' => 'Post content based on your request',
-                    'post_status' => 'draft',
-                ],
-            ];
-        }
-
-        if (stripos($prompt, 'update') !== false && stripos($prompt, 'post') !== false) {
-            $response['suggested_actions'][] = [
-                'tool' => 'posts.update',
-                'description' => 'Update an existing post',
-                'parameters' => [
-                    'id' => 1, // This would be determined by the LLM
-                    'fields' => [
-                        'post_title' => 'Updated Post Title',
-                        'post_content' => 'Updated post content',
-                    ],
-                ],
-            ];
-        }
-
-        return $response;
     }
 
     private function generateDiffPreview(string $tool, ?int $entityId, array $fields): ?string
