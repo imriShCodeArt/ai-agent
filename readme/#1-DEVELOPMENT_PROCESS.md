@@ -146,12 +146,12 @@ Based on the current implementation state, here's the structured development pro
 **Timeline**: Week 3
 
 #### Tasks:
-- [ ] **Create provider interface**
-  - [ ] Abstract LLM provider class
-  - [ ] OpenAI integration
-  - [ ] Anthropic Claude support
+- [x] **Create provider interface**
+  - [x] Abstract LLM provider class
+  - [x] OpenAI integration
+  - [x] Anthropic Claude support
   - [ ] Local model support (optional)
-  - [ ] API key management
+  - [x] API key management
 
 #### Integration Rules:
 - **Provider Switching**: Must support multiple LLM providers
@@ -160,21 +160,21 @@ Based on the current implementation state, here's the structured development pro
 - **Security**: API keys stored securely, never logged
 
 #### Testing Requirements:
-- [ ] **Unit Tests**: Mock LLM responses for consistent testing
+- [x] **Unit Tests**: Mock/agnostic LLM responses for consistent testing
 - [ ] **Integration Tests**: Test with real API (in staging only)
-- [ ] **Error Tests**: Verify graceful handling of API failures
-- [ ] **Security Tests**: Ensure API keys are properly protected
+- [x] **Error Tests**: Verify graceful handling of API failures
+- [x] **Security Tests**: Ensure API keys are properly protected
 
 ### 2.2 Tool Calling System
 **Priority**: Critical
 **Timeline**: Week 3-4
 
 #### Tasks:
-- [ ] **Tool definition system**
-  - [ ] JSON schema for tool definitions
-  - [ ] Tool registry and discovery
-  - [ ] Tool execution engine
-  - [ ] Result validation and formatting
+- [x] **Tool definition system**
+  - [x] JSON schema for tool definitions (lightweight validator)
+  - [x] Tool registry and discovery
+  - [x] Tool execution engine
+  - [x] Result validation and formatting
 
 #### Tool Rules:
 - **Schema Validation**: All tools must have valid JSON schemas
@@ -183,10 +183,10 @@ Based on the current implementation state, here's the structured development pro
 - **Audit Logging**: Every tool execution must be logged
 
 #### Testing Requirements:
-- [ ] **Tool Tests**: Each tool must have dedicated test suite
-- [ ] **Schema Tests**: Validate tool schemas against examples
-- [ ] **Permission Tests**: Verify capability checks work
-- [ ] **Policy Tests**: Ensure policy enforcement
+- [x] **Tool Tests**: Each tool must have dedicated test suite
+- [x] **Schema Tests**: Validate tool schemas against examples
+- [x] **Permission Tests**: Verify capability checks work
+- [x] **Policy Tests**: Ensure policy enforcement
 
 ### 2.3 Chat Interface Enhancement
 **Priority**: High
@@ -194,10 +194,10 @@ Based on the current implementation state, here's the structured development pro
 
 #### Tasks:
 - [ ] **React-based chat widget**
-  - [ ] Real-time messaging
-  - [ ] Tool suggestion display
-  - [ ] Error handling and recovery
-  - [ ] Mobile responsiveness
+  - [x] Real-time-like UX (progress/execute in current widget)
+  - [x] Tool suggestion display
+  - [x] Error handling and recovery
+  - [x] Mobile responsiveness
 
 #### Frontend Rules:
 - **Accessibility**: WCAG 2.1 AA compliance

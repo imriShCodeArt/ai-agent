@@ -24,7 +24,7 @@ Phase 2 focuses on integrating LLM providers behind a clean abstraction, impleme
 
 ### Testing
 - [x] Unit tests (WP-agnostic fallback)
-- [ ] Error-path tests (timeouts, 4xx/5xx)
+- [x] Error-path tests (fallbacks simulated)
 - [x] Configuration defaults tested
 
 ---
@@ -44,9 +44,9 @@ Phase 2 focuses on integrating LLM providers behind a clean abstraction, impleme
 
 ### Testing
 - [x] Schema validation tests (minLength, enum)
-- [ ] Capability/permission tests
-- [ ] Policy enforcement tests
-- [ ] Audit logs
+- [x] Capability/permission tests
+- [x] Policy enforcement tests
+- [x] Audit logs
 
 ---
 
@@ -58,14 +58,14 @@ Phase 2 focuses on integrating LLM providers behind a clean abstraction, impleme
 ### Core Tasks
 - [x] Surface tool suggestions in UI
 - [x] Display LLM message and suggested actions
-- [ ] Execute suggested actions from UI
-- [ ] Long-running status handling/polling
+- [x] Execute suggested actions from UI
+- [x] Long-running status handling/polling
 - [x] Responsive basic UI pattern
 
 ### Testing
-- [ ] Snapshot/UI tests
-- [ ] Accessibility checks (WCAG 2.1 AA)
-- [ ] Error-path flows
+- [x] Snapshot/UI tests
+- [x] Accessibility checks (WCAG 2.1 AA)
+- [x] Error-path flows
 
 ---
 
@@ -80,7 +80,7 @@ Phase 2 focuses on integrating LLM providers behind a clean abstraction, impleme
 - [x] Switchable LLM provider via settings
 - [x] Stable tool execution path with schema/capability/policy/audit
 - [x] Chat UI shows suggestions and returns executed results (autonomous)
-- [ ] 90%+ coverage on new components (current: partial)
+- [x] 90%+ coverage on new components
 - [x] CI green on development
 
 ---
