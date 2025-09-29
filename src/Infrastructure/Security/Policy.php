@@ -248,26 +248,44 @@ final class Policy
         $sanitized = [];
         
         foreach ($fields as $key => $value) {
-            // Sanitize key
-            $sanitizedKey = sanitize_key($key);
-            
-            if (empty($sanitizedKey)) {
+            // Sanitize key with WP fallback
+            if (function_exists('sanitize_key')) {
+                $sanitizedKey = sanitize_key($key);
+            } else {
+                $sanitizedKey = preg_replace('/[^a-z0-9_]/i', '', (string) $key) ?? '';
+                $sanitizedKey = strtolower($sanitizedKey);
+            }
+
+            if ($sanitizedKey === '') {
                 continue;
             }
-            
-            // Sanitize value based on type
+
+            // Sanitize value based on type with WP fallbacks
             if (is_string($value)) {
-                // Remove potentially dangerous content
-                $sanitizedValue = wp_strip_all_tags($value);
-                $sanitizedValue = sanitize_text_field($sanitizedValue);
+                $text = (string) $value;
+                if (function_exists('wp_strip_all_tags')) {
+                    $text = wp_strip_all_tags($text);
+                } else {
+                    $text = strip_tags($text);
+                }
+                if (function_exists('sanitize_text_field')) {
+                    $sanitizedValue = sanitize_text_field($text);
+                } else {
+                    $sanitizedValue = trim($text);
+                }
             } elseif (is_array($value)) {
                 $sanitizedValue = $this->sanitizeFields($value);
             } elseif (is_numeric($value)) {
                 $sanitizedValue = (int) $value;
             } else {
-                $sanitizedValue = sanitize_text_field((string) $value);
+                $text = (string) $value;
+                if (function_exists('sanitize_text_field')) {
+                    $sanitizedValue = sanitize_text_field($text);
+                } else {
+                    $sanitizedValue = trim(strip_tags($text));
+                }
             }
-            
+
             $sanitized[$sanitizedKey] = $sanitizedValue;
         }
         
