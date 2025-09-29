@@ -138,6 +138,32 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
             ],
         ]);
 
+        register_rest_route('ai-agent/v1', '/execute', [
+            'methods' => 'POST',
+            'callback' => [$chatController, 'execute'],
+            'permission_callback' => [$this, 'checkChatPermissions'],
+            'args' => [
+                'tool' => [
+                    'required' => true,
+                    'type' => 'string',
+                ],
+                'entity_id' => [
+                    'required' => false,
+                    'type' => 'integer',
+                ],
+                'fields' => [
+                    'required' => false,
+                    'type' => 'object',
+                ],
+                'mode' => [
+                    'required' => false,
+                    'type' => 'string',
+                    'enum' => ['suggest', 'review', 'autonomous'],
+                    'default' => 'autonomous',
+                ],
+            ],
+        ]);
+
         // Posts endpoints
         register_rest_route('ai-agent/v1', '/posts/create', [
             'methods' => 'POST',

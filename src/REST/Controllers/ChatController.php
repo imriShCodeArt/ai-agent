@@ -232,6 +232,38 @@ final class ChatController extends BaseRestController
         }
     }
 
+    public function execute(WP_REST_Request $request): WP_REST_Response|WP_Error
+    {
+        if (!wp_verify_nonce($request->get_header('X-WP-Nonce'), 'wp_rest')) {
+            return new WP_Error('invalid_nonce', 'Invalid nonce provided', ['status' => 403]);
+        }
+        if (!current_user_can('ai_agent_read')) {
+            return new WP_Error('insufficient_permissions', 'Insufficient permissions', ['status' => 403]);
+        }
+
+        $tool = sanitize_text_field($request->get_param('tool'));
+        $entityId = $request->get_param('entity_id');
+        $fields = $request->get_param('fields') ?? [];
+        $mode = sanitize_text_field($request->get_param('mode') ?? 'autonomous');
+
+        $entityId = $entityId ? (int) $entityId : null;
+        $fields = is_array($fields) ? $fields : [];
+
+        // Run via engine
+        $result = $this->engine->run($tool, [
+            'fields' => $fields,
+            'entity_id' => $entityId,
+            'entity_type' => 'generic',
+            'mode' => $mode,
+        ]);
+
+        if (isset($result['error'])) {
+            return new WP_Error('execute_failed', (string) ($result['message'] ?? $result['error']), ['status' => 400]);
+        }
+
+        return new WP_REST_Response(['success' => true, 'data' => $result]);
+    }
+
     private function processPrompt(string $prompt, string $mode, string $sessionId, int $userId): array
     {
         // Ask the LLM for a suggested summary and tools
