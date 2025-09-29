@@ -33,7 +33,9 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
             return new ChatController(
                 $this->container->get(Policy::class),
                 $this->container->get(AuditLogger::class),
-                $this->container->get(Logger::class)
+                $this->container->get(Logger::class),
+                $this->container->get(LLMProviderInterface::class),
+                $this->container->get(ToolExecutionEngine::class)
             );
         });
 
