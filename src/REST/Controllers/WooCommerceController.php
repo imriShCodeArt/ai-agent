@@ -85,9 +85,12 @@ final class WooCommerceController extends BaseRestController
 			$args['tax_query'] = $taxQuery;
 		}
 
+		/** @var \WP_Query $query */
 		$query = new \WP_Query($args);
 		$items = [];
+		// @phpstan-ignore-next-line accessing dynamic WP_Query props
 		if ($query->have_posts()) {
+			// @phpstan-ignore-next-line WP_Query->posts exists at runtime
 			foreach ($query->posts as $post) {
 				$product = wc_get_product($post->ID);
 				if (!$product) {
@@ -108,6 +111,7 @@ final class WooCommerceController extends BaseRestController
 			'pagination' => [
 				'page' => (int) $args['paged'],
 				'per_page' => (int) $args['posts_per_page'],
+				// @phpstan-ignore-next-line WP_Query->found_posts exists at runtime
 				'total' => (int) $query->found_posts,
 			],
 		]);

@@ -141,6 +141,11 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 		add_action('rest_api_init', [$this, 'registerRestRoutes']);
 	}
 
+	public function addHooks(): void
+	{
+		$this->registerHooks();
+	}
+
 	public function registerRestRoutes(): void
 	{
 		$chatController = $this->container->get(ChatController::class);
