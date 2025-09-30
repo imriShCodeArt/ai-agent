@@ -37,6 +37,11 @@ if (!function_exists('register_rest_route')) {
     function register_rest_route($namespace, $route, $args = []): void {}
 }
 
+// WordPress filter stub
+if (!function_exists('apply_filters')) {
+    function apply_filters($tag, $value) { return $value; }
+}
+
 // Basic WP option stubs used in unit tests
 if (!isset($GLOBALS['AI_AGENT_TEST_OPTIONS'])) { $GLOBALS['AI_AGENT_TEST_OPTIONS'] = []; }
 if (!function_exists('get_option')) {

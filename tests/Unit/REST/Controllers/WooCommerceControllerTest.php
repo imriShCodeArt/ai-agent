@@ -13,7 +13,7 @@ final class WooCommerceControllerTest extends TestCase
         update_option('ai_agent_woocommerce_enabled', false);
         $logger = new Logger();
         $controller = new WooCommerceController($logger);
-        $request = $this->createMock(\WP_REST_Request::class);
+        $request = new \WP_REST_Request();
         $result = $controller->productsSearch($request);
         $this->assertInstanceOf(\WP_Error::class, $result);
         $this->assertSame('wc_disabled', $result->get_error_code());
