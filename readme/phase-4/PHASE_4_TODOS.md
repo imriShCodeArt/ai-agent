@@ -136,7 +136,7 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 - [x] REST routes secured with middleware and capability checks
 - [x] Admin menu + settings screens available and functional
 - [x] Policies extended to commerce actions with tests
-- [ ] PHPUnit green, PHPStan level 8 clean
+- [x] PHPUnit green, PHPStan level 8 clean
 - [x] Documentation updated (README, Developer Guide)
 
 ---
