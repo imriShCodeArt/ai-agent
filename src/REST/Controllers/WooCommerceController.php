@@ -85,7 +85,6 @@ final class WooCommerceController extends BaseRestController
 			$args['tax_query'] = $taxQuery;
 		}
 
-		/** @var \WP_Query $query */
 		$query = new \WP_Query($args);
 		$items = [];
 		// @phpstan-ignore-next-line accessing dynamic WP_Query props
