@@ -14,8 +14,8 @@ final class WCProductsSearchTool implements ToolInterface
 				'q' => ['type' => 'string'],
 				'sku' => ['type' => 'string'],
 				'category' => ['type' => 'string'],
-				'price_min' => ['type' => 'number'],
-				'price_max' => ['type' => 'number'],
+				'price_min' => ['type' => 'number', 'minimum' => 0],
+				'price_max' => ['type' => 'number', 'minimum' => 0],
 				'page' => ['type' => 'integer'],
 				'per_page' => ['type' => 'integer'],
 			],
@@ -23,7 +23,11 @@ final class WCProductsSearchTool implements ToolInterface
 	}
 	public function execute(array $input): array
 	{
-		if (!get_option('ai_agent_woocommerce_enabled', false)) {
+		if (!Validator::validate($this->getSchema(), $input)) {
+			return ['ok' => false, 'error' => 'validation_failed'];
+		}
+		$enabled = (bool) apply_filters('ai_agent_wc_enabled', (bool) get_option('ai_agent_woocommerce_enabled', false));
+		if (!$enabled) {
 			return ['ok' => false, 'error' => 'WooCommerce disabled'];
 		}
 		if (!function_exists('wc_get_products')) {

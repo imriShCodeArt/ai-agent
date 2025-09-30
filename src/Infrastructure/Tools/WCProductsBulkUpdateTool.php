@@ -11,13 +11,28 @@ final class WCProductsBulkUpdateTool implements ToolInterface
 		return [
 			'required' => ['items'],
 			'properties' => [
-				'items' => ['type' => 'array'],
+				'items' => [
+					'type' => 'array',
+					'items' => [
+						'type' => 'object',
+						'properties' => [
+							'id' => ['type' => 'integer'],
+							'price' => ['type' => 'number', 'minimum' => 0],
+							'stock' => ['type' => 'integer', 'minimum' => 0],
+						],
+						'required' => ['id'],
+					],
+				],
 			],
 		];
 	}
 	public function execute(array $input): array
 	{
-		if (!get_option('ai_agent_woocommerce_enabled', false)) {
+		if (!Validator::validate($this->getSchema(), $input)) {
+			return ['ok' => false, 'error' => 'validation_failed'];
+		}
+		$enabled = (bool) apply_filters('ai_agent_wc_enabled', (bool) get_option('ai_agent_woocommerce_enabled', false));
+		if (!$enabled) {
 			return ['ok' => false, 'error' => 'WooCommerce disabled'];
 		}
 		if (!function_exists('wc_get_product')) {

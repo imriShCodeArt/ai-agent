@@ -12,9 +12,9 @@ final class WCProductsUpdateTool implements ToolInterface
 			'required' => ['id'],
 			'properties' => [
 				'id' => ['type' => 'integer'],
-				'title' => ['type' => 'string'],
+				'title' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 200],
 				'description' => ['type' => 'string'],
-				'price' => ['type' => 'number'],
+				'price' => ['type' => 'number', 'minimum' => 0],
 				'stock' => ['type' => 'integer'],
 				'sku' => ['type' => 'string'],
 			],
@@ -22,7 +22,11 @@ final class WCProductsUpdateTool implements ToolInterface
 	}
 	public function execute(array $input): array
 	{
-		if (!get_option('ai_agent_woocommerce_enabled', false)) {
+		if (!Validator::validate($this->getSchema(), $input)) {
+			return ['ok' => false, 'error' => 'validation_failed'];
+		}
+		$enabled = (bool) apply_filters('ai_agent_wc_enabled', (bool) get_option('ai_agent_woocommerce_enabled', false));
+		if (!$enabled) {
 			return ['ok' => false, 'error' => 'WooCommerce disabled'];
 		}
 		if (!function_exists('wc_get_product')) {

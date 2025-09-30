@@ -3,6 +3,7 @@
 namespace AIAgent\REST\Controllers;
 
 use AIAgent\Support\Logger;
+use AIAgent\Infrastructure\WC\Mappers;
 
 final class WooCommerceController extends BaseRestController
 {
@@ -27,6 +28,7 @@ final class WooCommerceController extends BaseRestController
 		}
 
 		$enabled = (bool) get_option('ai_agent_woocommerce_enabled', false);
+		$enabled = (bool) apply_filters('ai_agent_wc_enabled', $enabled);
 		if (!$enabled) {
 			return new \WP_Error('wc_disabled', 'WooCommerce integration is disabled');
 		}
@@ -85,6 +87,15 @@ final class WooCommerceController extends BaseRestController
 			$args['tax_query'] = $taxQuery;
 		}
 
+		// Batch pagination safeguards
+		if ($args['posts_per_page'] > 50) { $args['posts_per_page'] = 50; }
+		if ($args['paged'] < 1) { $args['paged'] = 1; }
+		// Simple object cache to avoid duplicate queries in short window
+		$cacheKey = 'ai_agent_wc_products_' . md5(wp_json_encode($args));
+		$cached = wp_cache_get($cacheKey, 'ai_agent');
+		if ($cached !== false) {
+			return new \WP_REST_Response($cached);
+		}
 		$query = new \WP_Query($args);
 		$items = [];
 		// @phpstan-ignore-next-line accessing dynamic WP_Query props
@@ -95,17 +106,11 @@ final class WooCommerceController extends BaseRestController
 				if (!$product) {
 					continue;
 				}
-				$items[] = [
-					'id' => $product->get_id(),
-					'name' => $product->get_name(),
-					'sku' => $product->get_sku(),
-					'price' => $product->get_price(),
-					'stock_status' => $product->get_stock_status(),
-				];
+				$items[] = Mappers::mapProduct($product);
 			}
 		}
 
-		return new \WP_REST_Response([
+		$response = [
 			'items' => $items,
 			'pagination' => [
 				'page' => (int) $args['paged'],
@@ -113,7 +118,9 @@ final class WooCommerceController extends BaseRestController
 				// @phpstan-ignore-next-line WP_Query->found_posts exists at runtime
 				'total' => (int) $query->found_posts,
 			],
-		]);
+		];
+		wp_cache_set($cacheKey, $response, 'ai_agent', 30);
+		return new \WP_REST_Response($response);
 	}
 
 	/**
@@ -135,18 +142,7 @@ final class WooCommerceController extends BaseRestController
 		$query = new \WC_Order_Query($args);
 		$orders = $query->get_orders();
 		$items = [];
-		foreach ($orders as $order) {
-			$items[] = [
-				'id' => $order->get_id(),
-				'number' => $order->get_order_number(),
-				'customer_id' => $order->get_user_id(),
-				'total' => $order->get_total(),
-				'currency' => $order->get_currency(),
-				'created_at' => $order->get_date_created() ? $order->get_date_created()->date('c') : null,
-				'payment_method' => $order->get_payment_method(),
-				'status' => $order->get_status(),
-			];
-		}
+		foreach ($orders as $order) { $items[] = Mappers::mapOrder($order); }
 		return new \WP_REST_Response(['items' => $items, 'page' => $args['page'], 'per_page' => $args['limit']]);
 	}
 
@@ -170,17 +166,7 @@ final class WooCommerceController extends BaseRestController
 		];
 		$userQuery = new \WP_User_Query($args);
 		$items = [];
-		foreach ($userQuery->get_results() as $user) {
-			$customer = new \WC_Customer($user->ID);
-			$items[] = [
-				'id' => $customer->get_id(),
-				'email' => $customer->get_email(),
-				'first_name' => $customer->get_first_name(),
-				'last_name' => $customer->get_last_name(),
-				'orders_count' => $customer->get_order_count(),
-				'total_spent' => $customer->get_total_spent(),
-			];
-		}
+		foreach ($userQuery->get_results() as $user) { $items[] = Mappers::mapCustomer(new \WC_Customer($user->ID)); }
 		return new \WP_REST_Response(['items' => $items, 'page' => $args['paged'], 'per_page' => $args['number']]);
 	}
 }

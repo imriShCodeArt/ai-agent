@@ -164,12 +164,19 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 		$logsController = $this->container->get(LogsController::class);
 		$policyController = $this->container->get(PolicyController::class);
 		$wcController = $this->container->get(WooCommerceController::class);
+		$security = $this->container->get(SecurityMiddleware::class);
 
 		// Chat endpoints
 		register_rest_route('ai-agent/v1', '/chat', [
 			'methods' => 'POST',
 			'callback' => [$chatController, 'chat'],
-			'permission_callback' => [$this, 'checkChatPermissions'],
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				if (!$auth['authenticated']) { return false; }
+				// Basic tool execute capability
+				return current_user_can('ai_agent_execute_tool') || current_user_can('manage_options');
+			},
 			'args' => [
 				'prompt' => [
 					'required' => true,
@@ -192,7 +199,11 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 		register_rest_route('ai-agent/v1', '/dry-run', [
 			'methods' => 'POST',
 			'callback' => [$chatController, 'dryRun'],
-			'permission_callback' => [$this, 'checkChatPermissions'],
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				return $auth['authenticated'];
+			},
 			'args' => [
 				'tool' => [
 					'required' => true,
@@ -212,7 +223,12 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 		register_rest_route('ai-agent/v1', '/execute', [
 			'methods' => 'POST',
 			'callback' => [$chatController, 'execute'],
-			'permission_callback' => [$this, 'checkChatPermissions'],
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				if (!$auth['authenticated']) { return false; }
+				return current_user_can('ai_agent_execute_tool') || current_user_can('manage_options');
+			},
 			'args' => [
 				'tool' => [
 					'required' => true,
@@ -233,7 +249,10 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 		register_rest_route('ai-agent/v1', '/wc/products', [
 			'methods' => 'GET',
 			'callback' => [$wcController, 'productsSearch'],
-			'permission_callback' => function () {
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				if (!$auth['authenticated']) { return false; }
 				return current_user_can('manage_woocommerce') || current_user_can('manage_options');
 			},
 			'args' => [
@@ -250,7 +269,10 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 		register_rest_route('ai-agent/v1', '/wc/orders', [
 			'methods' => 'GET',
 			'callback' => [$wcController, 'ordersSearch'],
-			'permission_callback' => function () {
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				if (!$auth['authenticated']) { return false; }
 				return current_user_can('manage_woocommerce') || current_user_can('manage_options');
 			},
 			'args' => [
@@ -264,7 +286,10 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 		register_rest_route('ai-agent/v1', '/wc/customers', [
 			'methods' => 'GET',
 			'callback' => [$wcController, 'customersSearch'],
-			'permission_callback' => function () {
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				if (!$auth['authenticated']) { return false; }
 				return current_user_can('manage_woocommerce') || current_user_can('manage_options');
 			},
 			'args' => [
@@ -277,6 +302,6 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 
 	public function checkChatPermissions(): bool
 	{
-		return current_user_can('ai_agent_execute') || current_user_can('manage_options');
+		return current_user_can('ai_agent_execute_tool') || current_user_can('manage_options');
 	}
 }

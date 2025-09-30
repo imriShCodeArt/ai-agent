@@ -519,6 +519,56 @@ final class EnhancedPolicy
     private function getDefaultPolicies(): array
     {
         return [
+            'products.create' => [
+                'rate_limits' => [
+                    'per_hour' => 50,
+                    'per_day' => 200,
+                    'per_ip_hour' => 100,
+                ],
+                'entity_rules' => [
+                    'requires_approval' => false,
+                    'price_threshold_approval' => 500.0,
+                ],
+                'approval_workflows' => [
+                    [
+                        'name' => 'High Price Creation',
+                        'conditions' => [
+                            ['type' => 'field_length_greater', 'field' => 'title', 'value' => 120],
+                        ],
+                    ],
+                ],
+            ],
+            'products.update' => [
+                'rate_limits' => [
+                    'per_hour' => 100,
+                    'per_day' => 500,
+                    'per_ip_hour' => 200,
+                ],
+                'approval_workflows' => [
+                    [
+                        'name' => 'Large Price Change',
+                        'conditions' => [
+                            // Placeholder condition; detailed diffing can be added later
+                            ['type' => 'tool_equals', 'field' => '', 'value' => 'products.update'],
+                        ],
+                    ],
+                ],
+            ],
+            'products.bulkUpdate' => [
+                'rate_limits' => [
+                    'per_hour' => 200,
+                    'per_day' => 1000,
+                    'per_ip_hour' => 300,
+                ],
+                'approval_workflows' => [
+                    [
+                        'name' => 'Bulk Sensitive Change',
+                        'conditions' => [
+                            ['type' => 'tool_equals', 'field' => '', 'value' => 'products.bulkUpdate'],
+                        ],
+                    ],
+                ],
+            ],
             'posts.create' => [
                 'rate_limits' => [
                     'per_hour' => 20,
