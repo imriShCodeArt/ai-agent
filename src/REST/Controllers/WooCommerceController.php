@@ -25,6 +25,9 @@ final class WooCommerceController extends BaseRestController
      * @param \WP_REST_Request $request
      * @return \WP_REST_Response|\WP_Error
      */
+    /**
+     * @param mixed $request
+     */
     public function productsSearch($request)
 	{
 		if (!function_exists('get_post_type_object')) {
@@ -134,6 +137,9 @@ final class WooCommerceController extends BaseRestController
      * @param \WP_REST_Request $request
      * @return \WP_REST_Response|\WP_Error
      */
+    /**
+     * @param mixed $request
+     */
     public function ordersSearch($request)
 	{
 		if (!class_exists('WC_Order_Query')) {
@@ -160,6 +166,9 @@ final class WooCommerceController extends BaseRestController
     /**
      * @param \WP_REST_Request $request
      * @return \WP_REST_Response|\WP_Error
+     */
+    /**
+     * @param mixed $request
      */
     public function customersSearch($request)
 	{

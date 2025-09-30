@@ -5,7 +5,6 @@ namespace AIAgent\REST\Controllers;
 use AIAgent\Infrastructure\Audit\AuditLogger;
 use AIAgent\Infrastructure\Security\Policy;
 use AIAgent\Support\Logger;
-use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
 
@@ -25,7 +24,10 @@ final class PostsController extends BaseRestController
         $this->logger = $logger;
     }
 
-    public function create(WP_REST_Request $request): WP_REST_Response|WP_Error
+    /**
+     * @param mixed $request
+     */
+    public function create($request): WP_REST_Response|WP_Error
     {
         $fields = $request->get_param('fields') ?? [];
         $mode = $request->get_param('mode') ?? 'suggest';
@@ -122,7 +124,10 @@ final class PostsController extends BaseRestController
         }
     }
 
-    public function update(WP_REST_Request $request): WP_REST_Response|WP_Error
+    /**
+     * @param mixed $request
+     */
+    public function update($request): WP_REST_Response|WP_Error
     {
         $id = (int) $request->get_param('id');
         $fields = $request->get_param('fields') ?? [];
@@ -240,7 +245,10 @@ final class PostsController extends BaseRestController
         }
     }
 
-    public function delete(WP_REST_Request $request): WP_REST_Response|WP_Error
+    /**
+     * @param mixed $request
+     */
+    public function delete($request): WP_REST_Response|WP_Error
     {
         $id = (int) $request->get_param('id');
         $mode = $request->get_param('mode') ?? 'suggest';
@@ -349,7 +357,10 @@ final class PostsController extends BaseRestController
         }
     }
 
-    public function get(WP_REST_Request $request): WP_REST_Response|WP_Error
+    /**
+     * @param mixed $request
+     */
+    public function get($request): WP_REST_Response|WP_Error
     {
         $id = (int) $request->get_param('id');
 

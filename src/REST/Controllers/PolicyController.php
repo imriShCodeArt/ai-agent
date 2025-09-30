@@ -119,7 +119,10 @@ final class PolicyController extends BaseRestController
         ]);
     }
 
-    public function get_policies(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function get_policies($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -148,7 +151,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function get_policy(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function get_policy($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -174,7 +180,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function create_policy(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function create_policy($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -204,7 +213,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function update_policy(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function update_policy($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -234,7 +246,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function delete_policy(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function delete_policy($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -262,7 +277,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function get_policy_versions(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function get_policy_versions($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -278,7 +296,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function get_policy_diff(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function get_policy_diff($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -302,7 +323,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function rollback_policy(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function rollback_policy($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -334,7 +358,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function test_policy(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function test_policy($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
