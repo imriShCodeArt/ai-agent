@@ -7,6 +7,7 @@ use AIAgent\REST\Controllers\ChatController;
 use AIAgent\REST\Controllers\PostsController;
 use AIAgent\REST\Controllers\LogsController;
 use AIAgent\REST\Controllers\PolicyController;
+use AIAgent\REST\Controllers\ReviewController;
 use AIAgent\REST\Controllers\WooCommerceController;
 use AIAgent\Infrastructure\Security\Policy;
 use AIAgent\Infrastructure\Security\EnhancedPolicy;
@@ -153,6 +154,11 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 		$this->container->singleton(WooCommerceController::class, function () {
 			return new WooCommerceController($this->container->get(Logger::class));
 		});
+
+		// Phase 5: Review controller
+		$this->container->singleton(ReviewController::class, function () {
+			return new ReviewController($this->container->get(Logger::class));
+		});
 	}
 
 	public function registerHooks(): void
@@ -171,6 +177,7 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 		$postsController = $this->container->get(PostsController::class);
 		$logsController = $this->container->get(LogsController::class);
 		$policyController = $this->container->get(PolicyController::class);
+		$reviewController = $this->container->get(ReviewController::class);
 		$wcController = $this->container->get(WooCommerceController::class);
 		$security = $this->container->get(SecurityMiddleware::class);
 
@@ -300,10 +307,60 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 				if (!$auth['authenticated']) { return false; }
 				return current_user_can('manage_woocommerce') || current_user_can('manage_options');
 			},
+		]);
+
+		// Phase 5: Review endpoints
+		register_rest_route('ai-agent/v1', '/reviews', [
+			'methods' => 'GET',
+			'callback' => [$reviewController, 'list'],
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				if (!$auth['authenticated']) { return false; }
+				return current_user_can('ai_agent_approve_changes') || current_user_can('manage_options');
+			},
 			'args' => [
-				'q' => ['required' => false, 'type' => 'string'],
 				'page' => ['required' => false, 'type' => 'integer'],
 				'per_page' => ['required' => false, 'type' => 'integer'],
+			],
+		]);
+
+		register_rest_route('ai-agent/v1', '/reviews/(?P<id>\\d+)/approve', [
+			'methods' => 'POST',
+			'callback' => [$reviewController, 'approve'],
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				if (!$auth['authenticated']) { return false; }
+				return current_user_can('ai_agent_approve_changes') || current_user_can('manage_options');
+			},
+		]);
+
+		register_rest_route('ai-agent/v1', '/reviews/(?P<id>\\d+)/reject', [
+			'methods' => 'POST',
+			'callback' => [$reviewController, 'reject'],
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				if (!$auth['authenticated']) { return false; }
+				return current_user_can('ai_agent_approve_changes') || current_user_can('manage_options');
+			},
+			'args' => [
+				'reason' => ['required' => false, 'type' => 'string'],
+			],
+		]);
+
+		register_rest_route('ai-agent/v1', '/reviews/(?P<id>\\d+)/comment', [
+			'methods' => 'POST',
+			'callback' => [$reviewController, 'comment'],
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				if (!$auth['authenticated']) { return false; }
+				return current_user_can('ai_agent_approve_changes') || current_user_can('manage_options');
+			},
+			'args' => [
+				'comment' => ['required' => true, 'type' => 'string'],
 			],
 		]);
 	}

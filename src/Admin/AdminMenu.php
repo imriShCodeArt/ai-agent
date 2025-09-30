@@ -52,6 +52,15 @@ final class AdminMenu
 			[$this, 'renderPoliciesPage']
 		);
 
+		add_submenu_page(
+			'ai-agent',
+			'Reviews',
+			'Reviews',
+			'ai_agent_approve_changes',
+			'ai-agent-reviews',
+			[$this, 'renderReviewsPage']
+		);
+
         add_submenu_page(
             'ai-agent',
             'Audit Logs',
@@ -350,6 +359,62 @@ final class AdminMenu
 			<p>View and manage policy documents governing tool execution.</p>
 			<p>Policy management UI is minimal for Phase 4; use CLI or DB for advanced edits.</p>
 		</div>
+		<?php
+	}
+
+	public function renderReviewsPage(): void
+	{
+		if (!current_user_can('ai_agent_approve_changes')) { wp_die('Insufficient permissions'); }
+		global $wpdb;
+		$table = $wpdb->prefix . 'ai_agent_actions';
+		$rows = $wpdb->get_results("SELECT * FROM $table WHERE status = 'pending' ORDER BY ts DESC LIMIT 50", ARRAY_A);
+		?>
+		<div class="wrap">
+			<h1>AI Agent Reviews</h1>
+			<?php if (empty($rows)): ?>
+				<p>No pending reviews.</p>
+			<?php else: ?>
+				<table class="wp-list-table widefat fixed striped">
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>Time</th>
+							<th>User</th>
+							<th>Tool</th>
+							<th>Entity</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ($rows as $r): ?>
+						<tr>
+							<td><?php echo esc_html($r['id']); ?></td>
+							<td><?php echo esc_html($r['ts']); ?></td>
+							<td><?php echo esc_html(get_user_by('id', $r['user_id'])->display_name ?? 'Unknown'); ?></td>
+							<td><?php echo esc_html($r['tool']); ?></td>
+							<td><?php echo esc_html($r['entity_type'] . ' #' . $r['entity_id']); ?></td>
+							<td>
+								<button class="button button-primary" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentApprove(this)">Approve</button>
+								<button class="button" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentReject(this)">Reject</button>
+							</td>
+						</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php endif; ?>
+		</div>
+		<script>
+		async function aiAgentApprove(btn){
+		  const id = btn.getAttribute('data-id');
+		  await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>'+id+'/approve', { method: 'POST', credentials: 'include' });
+		  location.reload();
+		}
+		async function aiAgentReject(btn){
+		  const id = btn.getAttribute('data-id');
+		  await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>'+id+'/reject', { method: 'POST', credentials: 'include' });
+		  location.reload();
+		}
+		</script>
 		<?php
 	}
 
