@@ -17,7 +17,7 @@ final class ReviewController extends BaseRestController
     }
 
     /**
-     * @param \WP_REST_Request $request
+     * @param mixed $request
      * @return \WP_REST_Response
      */
     public function list($request): \WP_REST_Response
@@ -38,7 +38,7 @@ final class ReviewController extends BaseRestController
     }
 
     /**
-     * @param \WP_REST_Request $request
+     * @param mixed $request
      * @return \WP_REST_Response
      */
     public function approve($request): \WP_REST_Response
@@ -54,7 +54,7 @@ final class ReviewController extends BaseRestController
     }
 
     /**
-     * @param \WP_REST_Request $request
+     * @param mixed $request
      * @return \WP_REST_Response
      */
     public function reject($request): \WP_REST_Response
@@ -70,7 +70,7 @@ final class ReviewController extends BaseRestController
     }
 
     /**
-     * @param \WP_REST_Request $request
+     * @param mixed $request
      * @return \WP_REST_Response
      */
     public function comment($request): \WP_REST_Response
