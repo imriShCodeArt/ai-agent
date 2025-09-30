@@ -18,6 +18,9 @@ final class RestRoutesSmokeTest extends TestCase
         // Minimal required bindings for register() to succeed
         $container->singleton(\AIAgent\Support\Logger::class, fn() => new \AIAgent\Support\Logger());
         $container->singleton(\AIAgent\Infrastructure\Security\Capabilities::class, fn() => new \AIAgent\Infrastructure\Security\Capabilities());
+        $container->singleton(\AIAgent\REST\Controllers\PolicyController::class, function() use ($container) {
+            return new \AIAgent\REST\Controllers\PolicyController($container->get(\AIAgent\Support\Logger::class));
+        });
         $provider->register();
         $this->assertTrue(is_callable([$provider, 'registerRestRoutes']));
         // Invoke to ensure no fatal due to permission_callback wiring
