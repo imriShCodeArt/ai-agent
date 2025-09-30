@@ -95,6 +95,9 @@ if (!function_exists('wp_redirect')) {
 if (!function_exists('admin_url')) {
     function admin_url($path = '') { return '/wp-admin/' . ltrim((string) $path, '/'); }
 }
+if (!function_exists('rest_url')) {
+    function rest_url($path = '') { return '/wp-json/' . ltrim((string) $path, '/'); }
+}
 if (!function_exists('current_user_can')) {
     function current_user_can($cap) { return isset($GLOBALS['AI_AGENT_TEST_CURRENT_USER_CAN']) ? (bool) $GLOBALS['AI_AGENT_TEST_CURRENT_USER_CAN'] : true; }
 }
@@ -118,6 +121,9 @@ if (!function_exists('esc_html')) {
 }
 if (!function_exists('esc_attr')) {
     function esc_attr($s) { return (string) $s; }
+}
+if (!function_exists('esc_url_raw')) {
+    function esc_url_raw($s) { return (string) $s; }
 }
 if (!function_exists('wp_nonce_field')) {
     function wp_nonce_field($action, $name) { return ''; }
