@@ -28,7 +28,7 @@ final class WooCommerceController extends BaseRestController
     /**
      * @param mixed $request
      */
-    public function productsSearch($request)
+    public function productsSearch($request): \WP_REST_Response|\WP_Error
 	{
 		if (!function_exists('get_post_type_object')) {
 			return new \WP_Error('wp_missing', 'WordPress functions unavailable');
@@ -140,7 +140,7 @@ final class WooCommerceController extends BaseRestController
     /**
      * @param mixed $request
      */
-    public function ordersSearch($request)
+    public function ordersSearch($request): \WP_REST_Response|\WP_Error
 	{
 		if (!class_exists('WC_Order_Query')) {
 			return new \WP_Error('wc_missing', 'WooCommerce is not installed/active');
@@ -170,7 +170,7 @@ final class WooCommerceController extends BaseRestController
     /**
      * @param mixed $request
      */
-    public function customersSearch($request)
+    public function customersSearch($request): \WP_REST_Response|\WP_Error
 	{
 		if (!class_exists('WC_Customer')) {
 			return new \WP_Error('wc_missing', 'WooCommerce is not installed/active');
