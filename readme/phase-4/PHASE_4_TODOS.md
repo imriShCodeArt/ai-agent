@@ -35,9 +35,9 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 **Timeline**: Week 7
 
 ### Tools
-- [ ] `products.create` (title, description, price, stock, categories, images)
-- [ ] `products.update` (partial updates)
-- [ ] `products.bulkUpdate` (batch operations with per-item validation)
+- [x] `products.create` (title, description, price, stock, categories, images)
+- [x] `products.update` (partial updates)
+- [x] `products.bulkUpdate` (batch operations with per-item validation)
 - [ ] `products.search` (filters: sku, category, price range, stock status)
 
 ### Implementation Notes
