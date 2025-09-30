@@ -17,14 +17,7 @@ final class MappersTest extends TestCase
             public function get_stock_status() { return 'instock'; }
         };
 
-        // Mock wp functions where used
-        // Define shims for functions used by mapper in test namespace
-        if (!function_exists('AIAgent\\Infrastructure\\WC\\get_woocommerce_currency')) {
-            \AIAgent\\Infrastructure\\WC\\get_woocommerce_currency = function() { return 'USD'; };
-        }
-        if (!function_exists('AIAgent\\Infrastructure\\WC\\wp_get_post_terms')) {
-            \AIAgent\\Infrastructure\\WC\\wp_get_post_terms = function($id, $tax, $args) { return ['Category A']; };
-        }
+        // Global shims provided in tests/bootstrap.php
 
         $dto = Mappers::mapProduct($product);
         $this->assertSame(123, $dto['id']);

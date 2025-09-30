@@ -19,11 +19,11 @@ final class Mappers
 			'sku' => $product->get_sku(),
 			// @phpstan-ignore-next-line
 			'price' => (float) $product->get_price(),
-			'currency' => get_woocommerce_currency(),
+			'currency' => \get_woocommerce_currency(),
 			// @phpstan-ignore-next-line
 			'stock_status' => $product->get_stock_status(),
 			// @phpstan-ignore-next-line
-			'categories' => array_values(wp_get_post_terms($product->get_id(), 'product_cat', ['fields' => 'names'])),
+			'categories' => array_values(\wp_get_post_terms($product->get_id(), 'product_cat', ['fields' => 'names'])),
 		];
 	}
 
