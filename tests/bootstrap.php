@@ -148,6 +148,22 @@ if (!isset($GLOBALS['wpdb'])) {
     };
 }
 
+// Ensure wpdb has update method even if pre-set elsewhere
+if (isset($GLOBALS['wpdb']) && !method_exists($GLOBALS['wpdb'], 'update')) {
+    $GLOBALS['wpdb'] = new class {
+        public string $prefix = 'wp_';
+        public int $insert_id = 1;
+        public string $last_error = '';
+        public function insert($table, $data) { $this->insert_id = 1; return 1; }
+        public function update($table, $data, $where = []) { return 1; }
+        public function get_var($q){ return null; }
+        public function get_results($q,$type=ARRAY_A){ return []; }
+        public function query($q){ return true; }
+        public function prepare($q){ return $q; }
+        public function get_charset_collate(){ return ''; }
+    };
+}
+
 // WooCommerce-related globals used by Mappers
 if (!function_exists('get_woocommerce_currency')) {
     function get_woocommerce_currency() { return 'USD'; }
