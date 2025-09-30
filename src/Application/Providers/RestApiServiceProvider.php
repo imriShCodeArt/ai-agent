@@ -7,6 +7,7 @@ use AIAgent\REST\Controllers\ChatController;
 use AIAgent\REST\Controllers\PostsController;
 use AIAgent\REST\Controllers\LogsController;
 use AIAgent\REST\Controllers\PolicyController;
+use AIAgent\REST\Controllers\WooCommerceController;
 use AIAgent\Infrastructure\Security\Policy;
 use AIAgent\Infrastructure\Security\EnhancedPolicy;
 use AIAgent\Infrastructure\Security\PolicyManager;
@@ -27,355 +28,212 @@ use AIAgent\Infrastructure\Tools\PostsUpdateTool;
 
 final class RestApiServiceProvider extends AbstractServiceProvider implements HookableInterface
 {
-    public function register(): void
-    {
-        // Register services in container
-        $this->container->singleton(Policy::class, function () {
-            return new Policy($this->container->get(Logger::class));
-        });
+	public function register(): void
+	{
+		// Register services in container
+		$this->container->singleton(Policy::class, function () {
+			return new Policy($this->container->get(Logger::class));
+		});
 
-        $this->container->singleton(AuditLogger::class, function () {
-            return new AuditLogger($this->container->get(Logger::class));
-        });
+		$this->container->singleton(AuditLogger::class, function () {
+			return new AuditLogger($this->container->get(Logger::class));
+		});
 
-        $this->container->singleton(EnhancedPolicy::class, function () {
-            return new EnhancedPolicy($this->container->get(Logger::class));
-        });
+		$this->container->singleton(EnhancedPolicy::class, function () {
+			return new EnhancedPolicy($this->container->get(Logger::class));
+		});
 
-        $this->container->singleton(PolicyManager::class, function () {
-            return new PolicyManager(
-                $this->container->get(Logger::class),
-                $this->container->get(EnhancedPolicy::class)
-            );
-        });
+		$this->container->singleton(PolicyManager::class, function () {
+			return new PolicyManager(
+				$this->container->get(Logger::class),
+				$this->container->get(EnhancedPolicy::class)
+			);
+		});
 
-        $this->container->singleton(EnhancedAuditLogger::class, function () {
-            return new EnhancedAuditLogger($this->container->get(Logger::class));
-        });
+		$this->container->singleton(EnhancedAuditLogger::class, function () {
+			return new EnhancedAuditLogger($this->container->get(Logger::class));
+		});
 
-        $this->container->singleton(HmacSigner::class, function () {
-            return new HmacSigner($this->container->get(Logger::class));
-        });
+		$this->container->singleton(HmacSigner::class, function () {
+			return new HmacSigner($this->container->get(Logger::class));
+		});
 
-        $this->container->singleton(OAuth2Provider::class, function () {
-            $config = [
-                'client_id' => get_option('ai_agent_oauth2_client_id', ''),
-                'client_secret' => get_option('ai_agent_oauth2_client_secret', ''),
-                'redirect_uri' => get_option('ai_agent_oauth2_redirect_uri', ''),
-                'authorization_url' => get_option('ai_agent_oauth2_authorization_url', ''),
-                'token_url' => get_option('ai_agent_oauth2_token_url', ''),
-                'user_info_url' => get_option('ai_agent_oauth2_user_info_url', ''),
-                'scopes' => get_option('ai_agent_oauth2_scopes', ['read', 'write']),
-            ];
-            return new OAuth2Provider($this->container->get(Logger::class), $config);
-        });
+		$this->container->singleton(OAuth2Provider::class, function () {
+			$config = [
+				'client_id' => get_option('ai_agent_oauth2_client_id', ''),
+				'client_secret' => get_option('ai_agent_oauth2_client_secret', ''),
+				'redirect_uri' => get_option('ai_agent_oauth2_redirect_uri', ''),
+				'authorization_url' => get_option('ai_agent_oauth2_authorization_url', ''),
+				'token_url' => get_option('ai_agent_oauth2_token_url', ''),
+				'user_info_url' => get_option('ai_agent_oauth2_user_info_url', ''),
+				'scopes' => get_option('ai_agent_oauth2_scopes', ['read', 'write']),
+			];
+			return new OAuth2Provider($this->container->get(Logger::class), $config);
+		});
 
-        $this->container->singleton(SecurityMiddleware::class, function () {
-            return new SecurityMiddleware(
-                $this->container->get(Logger::class),
-                $this->container->get(HmacSigner::class),
-                $this->container->get(OAuth2Provider::class)
-            );
-        });
+		$this->container->singleton(SecurityMiddleware::class, function () {
+			return new SecurityMiddleware(
+				$this->container->get(Logger::class),
+				$this->container->get(HmacSigner::class),
+				$this->container->get(OAuth2Provider::class)
+			);
+		});
 
-        $this->container->singleton(ChatController::class, function () {
-            return new ChatController(
-                $this->container->get(Policy::class),
-                $this->container->get(AuditLogger::class),
-                $this->container->get(Logger::class),
-                $this->container->get(LLMProviderInterface::class),
-                $this->container->get(ToolExecutionEngine::class)
-            );
-        });
+		$this->container->singleton(ChatController::class, function () {
+			return new ChatController(
+				$this->container->get(Policy::class),
+				$this->container->get(AuditLogger::class),
+				$this->container->get(Logger::class),
+				$this->container->get(LLMProviderInterface::class),
+				$this->container->get(ToolExecutionEngine::class)
+			);
+		});
 
-        $this->container->singleton(PostsController::class, function () {
-            return new PostsController(
-                $this->container->get(Policy::class),
-                $this->container->get(AuditLogger::class),
-                $this->container->get(Logger::class)
-            );
-        });
+		$this->container->singleton(PostsController::class, function () {
+			return new PostsController(
+				$this->container->get(Policy::class),
+				$this->container->get(AuditLogger::class),
+				$this->container->get(Logger::class)
+			);
+		});
 
-        $this->container->singleton(LogsController::class, function () {
-            return new LogsController(
-                $this->container->get(AuditLogger::class),
-                $this->container->get(Logger::class)
-            );
-        });
+		$this->container->singleton(LogsController::class, function () {
+			return new LogsController(
+				$this->container->get(AuditLogger::class),
+				$this->container->get(Logger::class)
+			);
+		});
 
-        // LLM Provider default binding (OpenAI; can be swapped later)
-        $this->container->singleton(LLMProviderInterface::class, function () {
-            $logger = $this->container->get(Logger::class);
-            $apiKey = (string) get_option('ai_agent_openai_api_key', '');
-            return new OpenAIProvider($logger, $apiKey);
-        });
+		// LLM Provider default binding (OpenAI; can be swapped later)
+		$this->container->singleton(LLMProviderInterface::class, function () {
+			$logger = $this->container->get(Logger::class);
+			$apiKey = (string) get_option('ai_agent_openai_api_key', '');
+			return new OpenAIProvider($logger, $apiKey);
+		});
 
-        // Tool system services
-        $this->container->singleton(ToolRegistry::class, function () {
-            $registry = new ToolRegistry();
-            // Register built-in tools
-            $registry->register(new TextSummarizeTool($this->container->get(LLMProviderInterface::class)));
-            $registry->register(new PostsCreateTool());
-            $registry->register(new PostsUpdateTool());
-            return $registry;
-        });
+		// Tool system services
+		$this->container->singleton(ToolRegistry::class, function () {
+			$registry = new ToolRegistry();
+			// Register built-in tools
+			$registry->register(new TextSummarizeTool($this->container->get(LLMProviderInterface::class)));
+			$registry->register(new PostsCreateTool());
+			$registry->register(new PostsUpdateTool());
+			return $registry;
+		});
 
-        $this->container->singleton(ToolExecutionEngine::class, function () {
-            return new ToolExecutionEngine(
-                $this->container->get(ToolRegistry::class),
-                $this->container->get(Policy::class),
-                $this->container->get(Capabilities::class),
-                $this->container->get(AuditLogger::class)
-            );
-        });
-    }
+		$this->container->singleton(ToolExecutionEngine::class, function () {
+			return new ToolExecutionEngine(
+				$this->container->get(ToolRegistry::class),
+				$this->container->get(Policy::class),
+				$this->container->get(Capabilities::class),
+				$this->container->get(AuditLogger::class)
+			);
+		});
 
-    public function registerHooks(): void
-    {
-        add_action('rest_api_init', [$this, 'registerRestRoutes']);
-    }
+		// WooCommerce controller (read-only Phase 4 scope)
+		$this->container->singleton(WooCommerceController::class, function () {
+			return new WooCommerceController($this->container->get(Logger::class));
+		});
+	}
 
-    public function registerRestRoutes(): void
-    {
-        $chatController = $this->container->get(ChatController::class);
-        $postsController = $this->container->get(PostsController::class);
-        $logsController = $this->container->get(LogsController::class);
-        $policyController = $this->container->get(PolicyController::class);
+	public function registerHooks(): void
+	{
+		add_action('rest_api_init', [$this, 'registerRestRoutes']);
+	}
 
-        // Chat endpoints
-        register_rest_route('ai-agent/v1', '/chat', [
-            'methods' => 'POST',
-            'callback' => [$chatController, 'chat'],
-            'permission_callback' => [$this, 'checkChatPermissions'],
-            'args' => [
-                'prompt' => [
-                    'required' => true,
-                    'type' => 'string',
-                    'sanitize_callback' => 'sanitize_text_field',
-                ],
-                'mode' => [
-                    'required' => false,
-                    'type' => 'string',
-                    'enum' => ['suggest', 'review', 'autonomous'],
-                    'default' => 'suggest',
-                ],
-                'session_id' => [
-                    'required' => false,
-                    'type' => 'string',
-                ],
-            ],
-        ]);
+	public function registerRestRoutes(): void
+	{
+		$chatController = $this->container->get(ChatController::class);
+		$postsController = $this->container->get(PostsController::class);
+		$logsController = $this->container->get(LogsController::class);
+		$policyController = $this->container->get(PolicyController::class);
+		$wcController = $this->container->get(WooCommerceController::class);
 
-        register_rest_route('ai-agent/v1', '/dry-run', [
-            'methods' => 'POST',
-            'callback' => [$chatController, 'dryRun'],
-            'permission_callback' => [$this, 'checkChatPermissions'],
-            'args' => [
-                'tool' => [
-                    'required' => true,
-                    'type' => 'string',
-                ],
-                'entity_id' => [
-                    'required' => false,
-                    'type' => 'integer',
-                ],
-                'fields' => [
-                    'required' => false,
-                    'type' => 'object',
-                ],
-            ],
-        ]);
+		// Chat endpoints
+		register_rest_route('ai-agent/v1', '/chat', [
+			'methods' => 'POST',
+			'callback' => [$chatController, 'chat'],
+			'permission_callback' => [$this, 'checkChatPermissions'],
+			'args' => [
+				'prompt' => [
+					'required' => true,
+					'type' => 'string',
+					'sanitize_callback' => 'sanitize_text_field',
+				],
+				'mode' => [
+					'required' => false,
+					'type' => 'string',
+					'enum' => ['suggest', 'review', 'autonomous'],
+					'default' => 'suggest',
+				],
+				'session_id' => [
+					'required' => false,
+					'type' => 'string',
+				],
+			],
+		]);
 
-        register_rest_route('ai-agent/v1', '/execute', [
-            'methods' => 'POST',
-            'callback' => [$chatController, 'execute'],
-            'permission_callback' => [$this, 'checkChatPermissions'],
-            'args' => [
-                'tool' => [
-                    'required' => true,
-                    'type' => 'string',
-                ],
-                'entity_id' => [
-                    'required' => false,
-                    'type' => 'integer',
-                ],
-                'fields' => [
-                    'required' => false,
-                    'type' => 'object',
-                ],
-                'mode' => [
-                    'required' => false,
-                    'type' => 'string',
-                    'enum' => ['suggest', 'review', 'autonomous'],
-                    'default' => 'autonomous',
-                ],
-            ],
-        ]);
+		register_rest_route('ai-agent/v1', '/dry-run', [
+			'methods' => 'POST',
+			'callback' => [$chatController, 'dryRun'],
+			'permission_callback' => [$this, 'checkChatPermissions'],
+			'args' => [
+				'tool' => [
+					'required' => true,
+					'type' => 'string',
+				],
+				'entity_id' => [
+					'required' => false,
+					'type' => 'integer',
+				],
+				'fields' => [
+					'required' => false,
+					'type' => 'object',
+				],
+			],
+		]);
 
-        // Posts endpoints
-        register_rest_route('ai-agent/v1', '/posts/create', [
-            'methods' => 'POST',
-            'callback' => [$postsController, 'create'],
-            'permission_callback' => [$this, 'checkPostPermissions'],
-            'args' => [
-                'fields' => [
-                    'required' => true,
-                    'type' => 'object',
-                ],
-                'mode' => [
-                    'required' => false,
-                    'type' => 'string',
-                    'enum' => ['suggest', 'review', 'autonomous'],
-                    'default' => 'suggest',
-                ],
-            ],
-        ]);
+		register_rest_route('ai-agent/v1', '/execute', [
+			'methods' => 'POST',
+			'callback' => [$chatController, 'execute'],
+			'permission_callback' => [$this, 'checkChatPermissions'],
+			'args' => [
+				'tool' => [
+					'required' => true,
+					'type' => 'string',
+				],
+				'entity_id' => [
+					'required' => false,
+					'type' => 'integer',
+				],
+				'fields' => [
+					'required' => false,
+					'type' => 'object',
+				],
+			],
+		]);
 
-        register_rest_route('ai-agent/v1', '/posts/update', [
-            'methods' => 'POST',
-            'callback' => [$postsController, 'update'],
-            'permission_callback' => [$this, 'checkPostPermissions'],
-            'args' => [
-                'id' => [
-                    'required' => true,
-                    'type' => 'integer',
-                ],
-                'fields' => [
-                    'required' => true,
-                    'type' => 'object',
-                ],
-                'mode' => [
-                    'required' => false,
-                    'type' => 'string',
-                    'enum' => ['suggest', 'review', 'autonomous'],
-                    'default' => 'suggest',
-                ],
-            ],
-        ]);
+		// WooCommerce endpoints (enabled via option)
+		register_rest_route('ai-agent/v1', '/wc/products', [
+			'methods' => 'GET',
+			'callback' => [$wcController, 'productsSearch'],
+			'permission_callback' => function () {
+				return current_user_can('manage_woocommerce') || current_user_can('manage_options');
+			},
+			'args' => [
+				'q' => ['required' => false, 'type' => 'string'],
+				'sku' => ['required' => false, 'type' => 'string'],
+				'category' => ['required' => false, 'type' => 'string'],
+				'price_min' => ['required' => false, 'type' => 'number'],
+				'price_max' => ['required' => false, 'type' => 'number'],
+				'page' => ['required' => false, 'type' => 'integer'],
+				'per_page' => ['required' => false, 'type' => 'integer'],
+			],
+		]);
+	}
 
-        register_rest_route('ai-agent/v1', '/posts/delete', [
-            'methods' => 'POST',
-            'callback' => [$postsController, 'delete'],
-            'permission_callback' => [$this, 'checkPostPermissions'],
-            'args' => [
-                'id' => [
-                    'required' => true,
-                    'type' => 'integer',
-                ],
-                'mode' => [
-                    'required' => false,
-                    'type' => 'string',
-                    'enum' => ['suggest', 'review', 'autonomous'],
-                    'default' => 'suggest',
-                ],
-            ],
-        ]);
-
-        register_rest_route('ai-agent/v1', '/posts/(?P<id>\d+)', [
-            'methods' => 'GET',
-            'callback' => [$postsController, 'get'],
-            'permission_callback' => [$this, 'checkPostPermissions'],
-            'args' => [
-                'id' => [
-                    'required' => true,
-                    'type' => 'integer',
-                ],
-            ],
-        ]);
-
-        // Logs endpoints
-        register_rest_route('ai-agent/v1', '/logs', [
-            'methods' => 'GET',
-            'callback' => [$logsController, 'getLogs'],
-            'permission_callback' => [$this, 'checkLogsPermissions'],
-            'args' => [
-                'user_id' => [
-                    'required' => false,
-                    'type' => 'integer',
-                ],
-                'tool' => [
-                    'required' => false,
-                    'type' => 'string',
-                ],
-                'entity_type' => [
-                    'required' => false,
-                    'type' => 'string',
-                ],
-                'status' => [
-                    'required' => false,
-                    'type' => 'string',
-                ],
-                'date_from' => [
-                    'required' => false,
-                    'type' => 'string',
-                    'format' => 'date-time',
-                ],
-                'date_to' => [
-                    'required' => false,
-                    'type' => 'string',
-                    'format' => 'date-time',
-                ],
-                'limit' => [
-                    'required' => false,
-                    'type' => 'integer',
-                    'default' => 50,
-                    'minimum' => 1,
-                    'maximum' => 100,
-                ],
-                'offset' => [
-                    'required' => false,
-                    'type' => 'integer',
-                    'default' => 0,
-                    'minimum' => 0,
-                ],
-            ],
-        ]);
-
-        register_rest_route('ai-agent/v1', '/logs/(?P<id>\d+)', [
-            'methods' => 'GET',
-            'callback' => [$logsController, 'getLogById'],
-            'permission_callback' => [$this, 'checkLogsPermissions'],
-            'args' => [
-                'id' => [
-                    'required' => true,
-                    'type' => 'integer',
-                ],
-            ],
-        ]);
-
-        register_rest_route('ai-agent/v1', '/logs/(?P<id>\d+)/diff', [
-            'methods' => 'GET',
-            'callback' => [$logsController, 'getDiff'],
-            'permission_callback' => [$this, 'checkLogsPermissions'],
-            'args' => [
-                'id' => [
-                    'required' => true,
-                    'type' => 'integer',
-                ],
-            ],
-        ]);
-
-        // Policy management endpoints
-        $policyController->register_routes();
-    }
-
-    public function checkChatPermissions(): bool
-    {
-        return is_user_logged_in() && current_user_can('ai_agent_read');
-    }
-
-    public function checkPostPermissions(): bool
-    {
-        return is_user_logged_in() && current_user_can('ai_agent_edit_posts');
-    }
-
-    public function checkLogsPermissions(): bool
-    {
-        return is_user_logged_in() && current_user_can('ai_agent_view_logs');
-    }
-
-    public function addHooks(): void
-    {
-        $this->registerHooks();
-    }
+	public function checkChatPermissions(): bool
+	{
+		return current_user_can('ai_agent_execute') || current_user_can('manage_options');
+	}
 }

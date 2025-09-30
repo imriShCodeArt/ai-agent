@@ -79,13 +79,19 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 - [ ] Security middleware (HMAC/OAuth2/app passwords) applied
 - [ ] Input validation, capability checks, audit logging
 
-### Admin UI
-- [ ] Settings: enable/disable WC features, rate limits, role gates
-- [ ] Minimal screens for tool dry-run + execute (dev utility)
+### Admin UI (New)
+- [ ] Add top-level menu: "AI Agent"
+- [ ] Subpages: Dashboard, Tools, Policies, Logs, Settings
+- [ ] Settings screen: feature flags, API keys, HMAC/OAuth2, WooCommerce enable
+- [ ] Register options (sanitize callbacks), capability checks, nonces
+- [ ] Wire existing classes `Admin\AdminMenu` and `Admin\Settings` (or add if missing)
+- [ ] Hook registration via service provider so menus load consistently
+- [ ] Minimal dev utility to dry-run/execute tools from admin for testing
 
 ### Testing
 - [ ] Unit: permission_callbacks and schema validators
 - [ ] Smoke tests: route registration and responses
+- [ ] Smoke tests: admin menu items and screens render without notices
 
 ---
 
@@ -127,6 +133,7 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 - [ ] Product tools implemented with validation and security controls
 - [ ] Read-only order/customer endpoints delivered
 - [ ] REST routes secured with middleware and capability checks
+- [ ] Admin menu + settings screens available and functional
 - [ ] Policies extended to commerce actions with tests
 - [ ] PHPUnit green, PHPStan level 8 clean
 - [ ] Documentation updated (README, Developer Guide)
