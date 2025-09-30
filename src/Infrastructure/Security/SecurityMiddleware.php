@@ -95,7 +95,7 @@ final class SecurityMiddleware
         return true;
     }
 
-    public function validateHmacSignature($request): bool
+    public function validateHmacSignature(object $request): bool
     {
         $signature = $request->get_header('x-hmac-signature');
         $algorithm = $request->get_header('x-hmac-algorithm') ?: 'sha256';
@@ -108,7 +108,7 @@ final class SecurityMiddleware
         return $this->hmacSigner->verify($body, $signature, $algorithm);
     }
 
-    public function validateWebhookSignature($request): bool
+    public function validateWebhookSignature(object $request): bool
     {
         $signature = $request->get_header('x-hub-signature-256');
         
@@ -151,7 +151,7 @@ final class SecurityMiddleware
         ], $context));
     }
 
-    private function authenticateHmac($request): array
+    private function authenticateHmac(object $request): array
     {
         $signature = $request->get_header('x-hmac-signature');
         
