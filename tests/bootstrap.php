@@ -75,6 +75,12 @@ if (!function_exists('sanitize_title')) {
 if (!function_exists('wp_kses_post')) {
     function wp_kses_post($content) { return (string) $content; }
 }
+if (!function_exists('wp_json_encode')) {
+    function wp_json_encode($data) { return json_encode($data); }
+}
+if (!defined('ARRAY_A')) {
+    define('ARRAY_A', 'ARRAY_A');
+}
 
 // Admin/menu related stubs for rendering/admin tests
 if (!function_exists('add_menu_page')) {
