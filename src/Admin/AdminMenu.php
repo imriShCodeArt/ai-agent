@@ -360,12 +360,20 @@ final class AdminMenu
 
 			<h2>Visual Policy Editor</h2>
 			<div id="ai-agent-policy-editor">
-				<p><label>Tool <input type="text" id="ai-agent-policy-tool" placeholder="e.g. products.update"></label></p>
-				<p><label>Policy JSON</label></p>
-				<p><textarea id="ai-agent-policy-json" rows="10" cols="100" placeholder="{\n  \"rate_limits\": { ... }\n}"></textarea></p>
 				<p>
-					<button class="button button-primary" onclick="aiAgentPolicySave()">Save Policy</button>
-					<button class="button" onclick="aiAgentPolicyTest()">Test Policy</button>
+					<label title="Enter the tool name this policy governs, e.g., products.update or posts.create">Tool 
+						<input type="text" id="ai-agent-policy-tool" placeholder="e.g. products.update">
+					</label>
+				</p>
+				<p><label>Policy JSON</label></p>
+				<p>
+					<textarea id="ai-agent-policy-json" rows="14" cols="100" placeholder="{\n  \"rate_limits\": { \n    \"per_hour\": 50, \n    \"per_day\": 200, \n    \"per_ip_hour\": 100 \n  },\n  \"time_windows\": {\n    \"allowed_hours\": [9,10,11], \n    \"allowed_days\": [1,2,3]\n  },\n  \"content_restrictions\": { \n    \"blocked_terms\": [\"spam\"], \n    \"blocked_patterns\": [] \n  },\n  \"entity_rules\": {},\n  \"approval_workflows\": []\n}"></textarea>
+				</p>
+				<p class="description" title="Top-level keys the policy engine accepts">Allowed keys: <code>rate_limits</code>, <code>time_windows</code>, <code>content_restrictions</code>, <code>entity_rules</code>, <code>approval_workflows</code>.</p>
+				<p id="ai-agent-policy-validate-msg" style="font-weight:600;"></p>
+				<p>
+					<button class="button button-primary" onclick="aiAgentPolicySave()" title="Validate and persist this policy as a new version">Save Policy</button>
+					<button class="button" onclick="aiAgentPolicyTest()" title="Run the policy engine in test mode with sample input">Test Policy</button>
 				</p>
 			</div>
 
@@ -385,15 +393,61 @@ final class AdminMenu
 			<pre id="ai-agent-policy-diff"></pre>
 		</div>
 		<script>
+		function aiAgentPolicyValidateStruct(obj){
+		  const allowedKeys = ['rate_limits','time_windows','content_restrictions','entity_rules','approval_workflows'];
+		  for(const k of Object.keys(obj)){
+		    if(!allowedKeys.includes(k)) return {ok:false, error:'Unknown key: '+k};
+		  }
+		  if(obj.rate_limits){
+		    for (const rk of Object.keys(obj.rate_limits)){
+		      if(!['per_hour','per_day','per_ip_hour'].includes(rk)) return {ok:false, error:'Unknown rate_limits key: '+rk};
+		      if (typeof obj.rate_limits[rk] !== 'number') return {ok:false, error:'rate_limits.'+rk+' must be number'};
+		    }
+		  }
+		  if(obj.time_windows){
+		    const tw = obj.time_windows;
+		    if(tw.allowed_hours && !Array.isArray(tw.allowed_hours)) return {ok:false, error:'time_windows.allowed_hours must be array'};
+		    if(tw.allowed_days && !Array.isArray(tw.allowed_days)) return {ok:false, error:'time_windows.allowed_days must be array'};
+		  }
+		  if(obj.content_restrictions){
+		    const cr = obj.content_restrictions;
+		    if(cr.blocked_terms && !Array.isArray(cr.blocked_terms)) return {ok:false, error:'content_restrictions.blocked_terms must be array'};
+		    if(cr.blocked_patterns && !Array.isArray(cr.blocked_patterns)) return {ok:false, error:'content_restrictions.blocked_patterns must be array'};
+		  }
+		  if(obj.approval_workflows){
+		    if(!Array.isArray(obj.approval_workflows)) return {ok:false, error:'approval_workflows must be array'};
+		  }
+		  return {ok:true};
+		}
+
+		function aiAgentPolicyLiveValidate(){
+		  const el = document.getElementById('ai-agent-policy-json');
+		  const msg = document.getElementById('ai-agent-policy-validate-msg');
+		  const raw = el.value.trim();
+		  if(raw === '') { msg.textContent=''; msg.style.color=''; return; }
+		  try {
+		    const parsed = JSON.parse(raw);
+		    const check = aiAgentPolicyValidateStruct(parsed);
+		    if(check.ok){ msg.textContent = 'Valid policy JSON'; msg.style.color = '#008a00'; }
+		    else { msg.textContent = 'Invalid: '+check.error; msg.style.color = '#b00020'; }
+		  } catch(e){
+		    msg.textContent = 'JSON parse error: '+e;
+		    msg.style.color = '#b00020';
+		  }
+		}
 		async function aiAgentPolicySave(){
 		  const tool = document.getElementById('ai-agent-policy-tool').value.trim();
 		  const policy = document.getElementById('ai-agent-policy-json').value;
 		  if(!tool||!policy){ alert('Tool and Policy JSON are required'); return; }
+		  let parsed;
+		  try { parsed = JSON.parse(policy); } catch(e){ alert('Invalid JSON: '+e); return; }
+		  const check = aiAgentPolicyValidateStruct(parsed);
+		  if(!check.ok){ alert('Validation failed: '+check.error); return; }
 		  const res = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/policies') ); ?>', {
 		    method: 'POST',
 		    credentials: 'include',
 		    headers: { 'Content-Type': 'application/json' },
-		    body: JSON.stringify({ tool, policy: JSON.parse(policy) })
+		    body: JSON.stringify({ tool, policy: parsed })
 		  });
 		  alert(res.ok ? 'Saved' : 'Save failed');
 		}
@@ -419,6 +473,7 @@ final class AdminMenu
 		  if(!file){ alert('Choose file'); return; }
 		  const text = await file.text();
 		  document.getElementById('ai-agent-policy-json').value = text;
+		  aiAgentPolicyLiveValidate();
 		}
 		async function aiAgentPolicyDiff(){
 		  const tool = document.getElementById('ai-agent-policy-tool').value.trim();
@@ -429,6 +484,11 @@ final class AdminMenu
 		  const data = await res.json();
 		  document.getElementById('ai-agent-policy-diff').textContent = JSON.stringify(data, null, 2);
 		}
+		// Attach live validation
+		document.addEventListener('DOMContentLoaded', function(){
+		  var el = document.getElementById('ai-agent-policy-json');
+		  if(el){ el.addEventListener('input', aiAgentPolicyLiveValidate); }
+		});
 		</script>
 		<?php
 	}
