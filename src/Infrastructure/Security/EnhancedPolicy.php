@@ -405,6 +405,11 @@ final class EnhancedPolicy
                         return true;
                     }
                     break;
+                case 'field_numeric_greater':
+                    if (isset($fields[$field]) && is_numeric($fields[$field]) && (float) $fields[$field] > (float) $value) {
+                        return true;
+                    }
+                    break;
                 case 'tool_equals':
                     if ($tool === $value) {
                         return true;
@@ -548,8 +553,7 @@ final class EnhancedPolicy
                     [
                         'name' => 'Large Price Change',
                         'conditions' => [
-                            // Placeholder condition; detailed diffing can be added later
-                            ['type' => 'tool_equals', 'field' => '', 'value' => 'products.update'],
+                            ['type' => 'field_numeric_greater', 'field' => 'price', 'value' => 500],
                         ],
                     ],
                 ],
