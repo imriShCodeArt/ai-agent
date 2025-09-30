@@ -4,16 +4,19 @@ namespace AIAgent\REST\Controllers;
 
 use AIAgent\Support\Logger;
 use AIAgent\Infrastructure\Audit\EnhancedAuditLogger;
+use AIAgent\Infrastructure\Notifications\NotificationsService;
 
 final class ReviewController extends BaseRestController
 {
     private Logger $logger;
     private EnhancedAuditLogger $auditLogger;
+    private NotificationsService $notifications;
 
     public function __construct(Logger $logger)
     {
         $this->logger = $logger;
         $this->auditLogger = new EnhancedAuditLogger($logger);
+        $this->notifications = new NotificationsService($logger);
     }
 
     /**
@@ -50,6 +53,7 @@ final class ReviewController extends BaseRestController
         // Mark approved
         $wpdb->update($table, ['status' => 'approved'], ['id' => $id]);
         $this->auditLogger->logSecurityEvent('review_approved', $userId, ['action_id' => $id, 'error_code' => 'REVIEW_APPROVED', 'error_category' => 'review']);
+        $this->notifications->notifyReviewEvent($id, 'approved');
         return new \WP_REST_Response(['ok' => true, 'id' => $id]);
     }
 
@@ -66,6 +70,7 @@ final class ReviewController extends BaseRestController
         $table = $wpdb->prefix . 'ai_agent_actions';
         $wpdb->update($table, ['status' => 'rejected', 'error' => $reason], ['id' => $id]);
         $this->auditLogger->logSecurityEvent('review_rejected', $userId, ['action_id' => $id, 'reason' => $reason, 'error_code' => 'REVIEW_REJECTED', 'error_category' => 'review']);
+        $this->notifications->notifyReviewEvent($id, 'rejected', $reason);
         return new \WP_REST_Response(['ok' => true, 'id' => $id]);
     }
 
@@ -81,6 +86,18 @@ final class ReviewController extends BaseRestController
         // For MVP, log comment via audit
         $this->auditLogger->logSecurityEvent('review_comment', $userId, ['action_id' => $id, 'comment' => $comment, 'error_code' => 'REVIEW_COMMENT', 'error_category' => 'review']);
         return new \WP_REST_Response(['ok' => true, 'id' => $id]);
+    }
+
+    /**
+     * @param mixed $request
+     */
+    public function notify($request): \WP_REST_Response
+    {
+        $id = (int) $request->get_param('id');
+        $type = (string) ($request->get_param('type') ?? 'pending');
+        $message = (string) ($request->get_param('message') ?? '');
+        $this->notifications->notifyReviewEvent($id, $type, $message);
+        return new \WP_REST_Response(['ok' => true]);
     }
 }
 

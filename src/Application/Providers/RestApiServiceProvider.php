@@ -372,6 +372,21 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 				'comment' => ['required' => true, 'type' => 'string'],
 			],
 		]);
+
+		register_rest_route('ai-agent/v1', '/reviews/(?P<id>\\d+)/notify', [
+			'methods' => 'POST',
+			'callback' => [$reviewController, 'notify'],
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				if (!$auth['authenticated']) { return false; }
+				return current_user_can('ai_agent_approve_changes') || current_user_can('manage_options');
+			},
+			'args' => [
+				'type' => ['required' => false, 'type' => 'string'],
+				'message' => ['required' => false, 'type' => 'string'],
+			],
+		]);
 	}
 
 	public function checkChatPermissions(): bool

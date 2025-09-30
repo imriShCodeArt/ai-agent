@@ -184,4 +184,8 @@ if (!class_exists('WP_REST_Request')) {
     }
 }
 
+if (!function_exists('wp_mail')) {
+    function wp_mail($to, $subject, $message) { return true; }
+}
+
 
