@@ -37,6 +37,11 @@ if (!function_exists('register_rest_route')) {
     function register_rest_route($namespace, $route, $args = []): void {}
 }
 
+// Minimal WP query/types stubs
+if (!function_exists('get_post_type_object')) {
+    function get_post_type_object($type) { return (object) ['name' => $type]; }
+}
+
 // WordPress filter stub
 if (!function_exists('apply_filters')) {
     function apply_filters($tag, $value) { return $value; }
