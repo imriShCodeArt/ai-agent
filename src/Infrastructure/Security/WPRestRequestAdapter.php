@@ -8,7 +8,7 @@ namespace AIAgent\Infrastructure\Security;
 final class WPRestRequestAdapter implements RequestInterface
 {
     /** @var \WP_REST_Request */
-    private $request;
+    private $request; // @phpstan-ignore-line
 
     public function __construct(\WP_REST_Request $request)
     {
