@@ -76,8 +76,10 @@ final class RoleManager
         // Check if user already exists
         $user = get_user_by('login', $username);
         if ($user) {
-            $this->logger->info('AI Agent service user already exists', ['user_id' => $user->ID]);
-            return $user->ID;
+            // @phpstan-ignore-next-line WP_User available at runtime in WP
+            $this->logger->info('AI Agent service user already exists', ['user_id' => (int) $user->ID]);
+            // @phpstan-ignore-next-line WP_User available at runtime in WP
+            return (int) $user->ID;
         }
 
         $user_id = wp_create_user($username, wp_generate_password(), $email);

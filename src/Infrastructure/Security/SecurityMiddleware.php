@@ -232,12 +232,14 @@ final class SecurityMiddleware
         }
 
         try {
-            $result = $this->oauth2Provider->validateApplicationPassword($user->ID, $password);
+            // @phpstan-ignore-next-line WP_User is available at runtime in WordPress
+            $result = $this->oauth2Provider->validateApplicationPassword((int) $user->ID, $password);
             
             if ($result['valid']) {
                 return [
                     'authenticated' => true,
-                    'user_id' => $user->ID,
+                    // @phpstan-ignore-next-line WP_User is available at runtime in WordPress
+                    'user_id' => (int) $user->ID,
                     'auth_method' => 'app_password',
                     'scopes' => $result['scopes'],
                 ];
@@ -262,7 +264,8 @@ final class SecurityMiddleware
         
         return [
             'authenticated' => true,
-            'user_id' => $user->ID,
+            // @phpstan-ignore-next-line WP_User is available at runtime in WordPress
+            'user_id' => (int) $user->ID,
             'auth_method' => 'wordpress',
             'scopes' => $this->getUserScopes($user),
         ];
