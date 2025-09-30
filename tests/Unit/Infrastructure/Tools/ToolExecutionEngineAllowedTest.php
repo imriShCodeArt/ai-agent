@@ -24,6 +24,7 @@ final class ToolExecutionEngineAllowedTest extends TestCase
         $registry->register($tool);
 
         $policy = new Policy(new Logger());
+        $policy->disableTimeWindowCheck();
         $cap = new Capabilities();
         $audit = new AuditLogger(new Logger());
 
