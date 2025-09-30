@@ -3,6 +3,7 @@
 namespace AIAgent\Infrastructure\Security;
 
 use AIAgent\Support\Logger;
+use AIAgent\Infrastructure\Security\RequestInterface;
 
 final class SecurityMiddleware
 {
@@ -95,7 +96,7 @@ final class SecurityMiddleware
         return true;
     }
 
-    public function validateHmacSignature(object $request): bool
+    public function validateHmacSignature(RequestInterface $request): bool
     {
         $signature = $request->get_header('x-hmac-signature');
         $algorithm = $request->get_header('x-hmac-algorithm') ?: 'sha256';
@@ -108,7 +109,7 @@ final class SecurityMiddleware
         return $this->hmacSigner->verify($body, $signature, $algorithm);
     }
 
-    public function validateWebhookSignature(object $request): bool
+    public function validateWebhookSignature(RequestInterface $request): bool
     {
         $signature = $request->get_header('x-hub-signature-256');
         
@@ -151,7 +152,7 @@ final class SecurityMiddleware
         ], $context));
     }
 
-    private function authenticateHmac(object $request): array
+    private function authenticateHmac(RequestInterface $request): array
     {
         $signature = $request->get_header('x-hmac-signature');
         

@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 use AIAgent\Infrastructure\Security\SecurityMiddleware;
 use AIAgent\Infrastructure\Security\HmacSigner;
 use AIAgent\Infrastructure\Security\OAuth2Provider;
+use AIAgent\Infrastructure\Security\RequestInterface;
 use AIAgent\Support\Logger;
 
 final class SecurityMiddlewareTest extends TestCase
@@ -137,9 +138,9 @@ final class SecurityMiddlewareTest extends TestCase
         $this->assertTrue(true); // If we get here, no exception was thrown
     }
 
-    private function createMockRequest(array $headers, string $body): object
+    private function createMockRequest(array $headers, string $body): RequestInterface
     {
-        $request = new class($headers, $body) {
+        return new class($headers, $body) implements RequestInterface {
             private array $headers;
             private string $body;
             
@@ -156,7 +157,5 @@ final class SecurityMiddlewareTest extends TestCase
                 return $this->body;
             }
         };
-        
-        return $request;
     }
 }
