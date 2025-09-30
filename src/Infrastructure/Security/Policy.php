@@ -8,6 +8,7 @@ final class Policy
 {
     private Logger $logger;
     private array $policies = [];
+    private bool $disableTimeWindowCheck = false;
 
     public function __construct(Logger $logger)
     {
@@ -79,6 +80,11 @@ final class Policy
         $this->logger->info('Policy updated', ['tool' => $tool]);
     }
 
+    public function disableTimeWindowCheck(): void
+    {
+        $this->disableTimeWindowCheck = true;
+    }
+
     private function checkRateLimit(string $tool, array $policy): bool
     {
         if (!isset($policy['rate_limits'])) {
@@ -110,6 +116,10 @@ final class Policy
 
     private function checkTimeWindow(array $policy): bool
     {
+        if ($this->disableTimeWindowCheck) {
+            return true;
+        }
+
         if (!isset($policy['time_windows'])) {
             return true;
         }
