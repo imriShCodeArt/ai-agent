@@ -18,11 +18,12 @@ final class MappersTest extends TestCase
         };
 
         // Mock wp functions where used
-        if (!function_exists('get_woocommerce_currency')) {
-            function get_woocommerce_currency() { return 'USD'; }
+        // Define shims for functions used by mapper in test namespace
+        if (!function_exists('AIAgent\\Infrastructure\\WC\\get_woocommerce_currency')) {
+            \AIAgent\\Infrastructure\\WC\\get_woocommerce_currency = function() { return 'USD'; };
         }
-        if (!function_exists('wp_get_post_terms')) {
-            function wp_get_post_terms($id, $tax, $args) { return ['Category A']; }
+        if (!function_exists('AIAgent\\Infrastructure\\WC\\wp_get_post_terms')) {
+            \AIAgent\\Infrastructure\\WC\\wp_get_post_terms = function($id, $tax, $args) { return ['Category A']; };
         }
 
         $dto = Mappers::mapProduct($product);
