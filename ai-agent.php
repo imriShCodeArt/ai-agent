@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AI Agent
  * Description: Foundation for an extensible AI Agent plugin.
- * Version: 0.2.1
+ * Version: 0.2.2
  * Author: Your Name
  * Text Domain: ai-agent
  * Domain Path: /languages
