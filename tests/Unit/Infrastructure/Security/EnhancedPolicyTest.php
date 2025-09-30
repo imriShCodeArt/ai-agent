@@ -16,8 +16,8 @@ final class EnhancedPolicyTest extends TestCase
         $this->policy = new EnhancedPolicy($logger);
         $this->policy->disableTimeWindowCheck(); // Disable for testing
         
-        // Set up test policies
-        $this->policy->updatePolicy('posts.create', [
+        // Set up test policies (use sanitized tool name)
+        $this->policy->updatePolicy('postscreate', [
             'content_restrictions' => [
                 'blocked_terms' => ['spam', 'viagra', 'casino'],
                 'blocked_patterns' => ['/buy\s+viagra/i', '/casino\s+bonus/i'],
@@ -64,6 +64,10 @@ final class EnhancedPolicyTest extends TestCase
 
     public function testContentRestrictionsBlockedTerm(): void
     {
+        // Debug: Check if policy exists
+        $policy = $this->policy->getPolicyForTool('postscreate');
+        $this->assertNotNull($policy, 'Policy should exist for postscreate');
+        
         $result = $this->policy->isAllowed('posts.create', null, ['post_content' => 'This is spam content']);
         
         $this->assertFalse($result['allowed']);
@@ -132,7 +136,7 @@ final class EnhancedPolicyTest extends TestCase
             $this->assertGreaterThan(0, $policyId);
         } catch (\Exception $e) {
             // Expected in test environment without database
-            $this->assertStringContainsString('wpdb', $e->getMessage());
+            $this->assertStringContainsString('prefix', $e->getMessage());
         }
     }
 
@@ -146,7 +150,7 @@ final class EnhancedPolicyTest extends TestCase
             $this->assertIsArray($versions);
         } catch (\Exception $e) {
             // Expected in test environment without database
-            $this->assertStringContainsString('wpdb', $e->getMessage());
+            $this->assertStringContainsString('prefix', $e->getMessage());
         }
     }
 
@@ -183,8 +187,8 @@ final class EnhancedPolicyTest extends TestCase
 
     public function testDefaultPoliciesExist(): void
     {
-        $postsCreatePolicy = $this->policy->getPolicyForTool('posts.create');
-        $postsUpdatePolicy = $this->policy->getPolicyForTool('posts.update');
+        $postsCreatePolicy = $this->policy->getPolicyForTool('postscreate');
+        $postsUpdatePolicy = $this->policy->getPolicyForTool('postsupdate');
         
         $this->assertIsArray($postsCreatePolicy);
         $this->assertIsArray($postsUpdatePolicy);

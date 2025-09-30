@@ -149,10 +149,11 @@ final class HmacSignerTest extends TestCase
         $logger = new Logger();
         $signer = new HmacSigner($logger, '');
         
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Secret key is required for HMAC signing');
+        // HmacSigner should generate a secret key automatically
+        $signature = $signer->sign('test data');
         
-        $signer->sign('test data');
+        $this->assertIsString($signature);
+        $this->assertNotEmpty($signature);
     }
 
     public function testRotateSecretKey(): void

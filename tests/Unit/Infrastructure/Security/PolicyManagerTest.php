@@ -19,8 +19,8 @@ final class PolicyManagerTest extends TestCase
         $this->policy->disableTimeWindowCheck(); // Disable for testing
         $this->policyManager = new PolicyManager($logger, $this->policy);
         
-        // Set up test policies
-        $this->policy->updatePolicy('posts.create', [
+        // Set up test policies (use sanitized tool name)
+        $this->policy->updatePolicy('postscreate', [
             'content_restrictions' => [
                 'blocked_terms' => ['spam', 'viagra', 'casino'],
                 'blocked_patterns' => ['/buy\s+viagra/i', '/casino\s+bonus/i'],

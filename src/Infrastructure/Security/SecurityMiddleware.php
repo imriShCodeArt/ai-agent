@@ -128,12 +128,12 @@ final class SecurityMiddleware
         foreach ($data as $key => $value) {
             $key = function_exists('sanitize_key') ? sanitize_key($key) : preg_replace('/[^a-z0-9_-]/', '', strtolower($key));
             
-            if (is_string($value)) {
-                $value = function_exists('sanitize_text_field') ? sanitize_text_field($value) : strip_tags($value);
-            } elseif (is_array($value)) {
+            if (is_array($value)) {
                 $value = $this->sanitizeInput($value);
             } elseif (is_numeric($value)) {
                 $value = is_float($value) ? (float) $value : (int) $value;
+            } elseif (is_string($value)) {
+                $value = function_exists('sanitize_text_field') ? sanitize_text_field($value) : strip_tags($value);
             }
             
             $sanitized[$key] = $value;
