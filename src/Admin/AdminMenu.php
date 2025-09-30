@@ -208,36 +208,6 @@ final class AdminMenu
             wp_die('Insufficient permissions');
         }
 
-	public function renderToolsPage(): void
-	{
-		if (!current_user_can('ai_agent_execute_tool')) { wp_die('Insufficient permissions'); }
-		?>
-		<div class="wrap">
-			<h1>AI Agent Tools</h1>
-			<p>Use this utility to dry-run or execute registered tools for testing.</p>
-			<form method="post">
-				<?php wp_nonce_field('ai_agent_tools', 'ai_agent_tools_nonce'); ?>
-				<p><label>Tool Name <input type="text" name="tool" required></label></p>
-				<p><label>Payload (JSON) <textarea name="payload" rows="6" cols="80"></textarea></label></p>
-				<p><button class="button button-primary" name="action" value="dry_run">Dry Run</button>
-				<button class="button" name="action" value="execute">Execute</button></p>
-			</form>
-		</div>
-		<?php
-	}
-
-	public function renderPoliciesPage(): void
-	{
-		if (!current_user_can('ai_agent_manage_policies')) { wp_die('Insufficient permissions'); }
-		?>
-		<div class="wrap">
-			<h1>AI Agent Policies</h1>
-			<p>View and manage policy documents governing tool execution.</p>
-			<p>Policy management UI is minimal for Phase 4; use CLI or DB for advanced edits.</p>
-		</div>
-		<?php
-	}
-
         global $wpdb;
         $actionsTable = $wpdb->prefix . 'ai_agent_actions';
         
@@ -352,6 +322,36 @@ final class AdminMenu
         </div>
         <?php
     }
+
+	public function renderToolsPage(): void
+	{
+		if (!current_user_can('ai_agent_execute_tool')) { wp_die('Insufficient permissions'); }
+		?>
+		<div class="wrap">
+			<h1>AI Agent Tools</h1>
+			<p>Use this utility to dry-run or execute registered tools for testing.</p>
+			<form method="post">
+				<?php wp_nonce_field('ai_agent_tools', 'ai_agent_tools_nonce'); ?>
+				<p><label>Tool Name <input type="text" name="tool" required></label></p>
+				<p><label>Payload (JSON) <textarea name="payload" rows="6" cols="80"></textarea></label></p>
+				<p><button class="button button-primary" name="action" value="dry_run">Dry Run</button>
+				<button class="button" name="action" value="execute">Execute</button></p>
+			</form>
+		</div>
+		<?php
+	}
+
+	public function renderPoliciesPage(): void
+	{
+		if (!current_user_can('ai_agent_manage_policies')) { wp_die('Insufficient permissions'); }
+		?>
+		<div class="wrap">
+			<h1>AI Agent Policies</h1>
+			<p>View and manage policy documents governing tool execution.</p>
+			<p>Policy management UI is minimal for Phase 4; use CLI or DB for advanced edits.</p>
+		</div>
+		<?php
+	}
 
     private function getSystemStatus(): string
     {
