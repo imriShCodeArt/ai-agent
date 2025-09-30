@@ -10,6 +10,9 @@ use AIAgent\REST\Controllers\PolicyController;
 use AIAgent\Infrastructure\Security\Policy;
 use AIAgent\Infrastructure\Security\EnhancedPolicy;
 use AIAgent\Infrastructure\Security\PolicyManager;
+use AIAgent\Infrastructure\Security\HmacSigner;
+use AIAgent\Infrastructure\Security\OAuth2Provider;
+use AIAgent\Infrastructure\Security\SecurityMiddleware;
 use AIAgent\Infrastructure\Audit\AuditLogger;
 use AIAgent\Infrastructure\Audit\EnhancedAuditLogger;
 use AIAgent\Support\Logger;
@@ -48,6 +51,31 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 
         $this->container->singleton(EnhancedAuditLogger::class, function () {
             return new EnhancedAuditLogger($this->container->get(Logger::class));
+        });
+
+        $this->container->singleton(HmacSigner::class, function () {
+            return new HmacSigner($this->container->get(Logger::class));
+        });
+
+        $this->container->singleton(OAuth2Provider::class, function () {
+            $config = [
+                'client_id' => get_option('ai_agent_oauth2_client_id', ''),
+                'client_secret' => get_option('ai_agent_oauth2_client_secret', ''),
+                'redirect_uri' => get_option('ai_agent_oauth2_redirect_uri', ''),
+                'authorization_url' => get_option('ai_agent_oauth2_authorization_url', ''),
+                'token_url' => get_option('ai_agent_oauth2_token_url', ''),
+                'user_info_url' => get_option('ai_agent_oauth2_user_info_url', ''),
+                'scopes' => get_option('ai_agent_oauth2_scopes', ['read', 'write']),
+            ];
+            return new OAuth2Provider($this->container->get(Logger::class), $config);
+        });
+
+        $this->container->singleton(SecurityMiddleware::class, function () {
+            return new SecurityMiddleware(
+                $this->container->get(Logger::class),
+                $this->container->get(HmacSigner::class),
+                $this->container->get(OAuth2Provider::class)
+            );
         });
 
         $this->container->singleton(ChatController::class, function () {
