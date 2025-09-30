@@ -25,8 +25,8 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 - [x] Strict sanitization/escaping for product inputs
 
 ### Testing
-- [ ] Unit: mappers (WC_Product, WC_Order) happy/error paths
-- [ ] Unit: capability gates for each action
+- [x] Unit: mappers (WC_Product, WC_Order) happy/error paths
+- [x] Unit: capability gates for each action
 
 ---
 
