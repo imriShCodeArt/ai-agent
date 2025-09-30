@@ -25,6 +25,9 @@ use AIAgent\Infrastructure\Security\Capabilities;
 use AIAgent\Infrastructure\Tools\TextSummarizeTool;
 use AIAgent\Infrastructure\Tools\PostsCreateTool;
 use AIAgent\Infrastructure\Tools\PostsUpdateTool;
+use AIAgent\Infrastructure\Tools\WCProductsCreateTool;
+use AIAgent\Infrastructure\Tools\WCProductsUpdateTool;
+use AIAgent\Infrastructure\Tools\WCProductsBulkUpdateTool;
 
 final class RestApiServiceProvider extends AbstractServiceProvider implements HookableInterface
 {
@@ -118,6 +121,12 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 			$registry->register(new TextSummarizeTool($this->container->get(LLMProviderInterface::class)));
 			$registry->register(new PostsCreateTool());
 			$registry->register(new PostsUpdateTool());
+			// Conditionally register WooCommerce tools
+			if ((bool) get_option('ai_agent_woocommerce_enabled', false) && class_exists('WC_Product')) {
+				$registry->register(new WCProductsCreateTool());
+				$registry->register(new WCProductsUpdateTool());
+				$registry->register(new WCProductsBulkUpdateTool());
+			}
 			return $registry;
 		});
 
