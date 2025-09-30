@@ -61,7 +61,8 @@ final class HmacSigner
         ];
         
         $jsonPayload = function_exists('wp_json_encode') ? wp_json_encode($payload) : json_encode($payload);
-        $signature = $this->sign($jsonPayload, $algorithm);
+        // Ensure string for static analysis and runtime safety
+        $signature = $this->sign((string) $jsonPayload, $algorithm);
         
         return [
             'payload' => $payload,
@@ -102,7 +103,8 @@ final class HmacSigner
         
         // Verify signature
         $jsonPayload = function_exists('wp_json_encode') ? wp_json_encode($payload) : json_encode($payload);
-        $isValid = $this->verify($jsonPayload, $signature, $algorithm);
+        // Ensure string for static analysis and runtime safety
+        $isValid = $this->verify((string) $jsonPayload, $signature, $algorithm);
         
         if (!$isValid) {
             $this->logger->warning('HMAC signature verification failed', [

@@ -98,7 +98,7 @@ final class WooCommerceController extends BaseRestController
         $args['posts_per_page'] = min((int) $args['posts_per_page'], 50);
         $args['paged'] = max((int) $args['paged'], 1);
 		// Simple object cache to avoid duplicate queries in short window
-		$cacheKey = 'ai_agent_wc_products_' . md5(wp_json_encode($args));
+		$cacheKey = 'ai_agent_wc_products_' . md5((string) (function_exists('wp_json_encode') ? wp_json_encode($args) : json_encode($args)));
 		$cached = wp_cache_get($cacheKey, 'ai_agent');
 		if ($cached !== false) {
 			return new \WP_REST_Response($cached);
