@@ -65,8 +65,8 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 - [x] Pagination & limits with policy-backed rate limits
 
 ### Testing
-- [ ] Unit: search parameter validation and pagination bounds
-- [ ] Unit: redaction of PII fields in summaries/logs
+- [x] Unit: search parameter validation and pagination bounds
+- [x] Unit: redaction of PII fields in summaries/logs
 
 ---
 
@@ -90,8 +90,8 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 - [x] Minimal dev utility to dry-run/execute tools from admin for testing
 
 ### Testing
-- [ ] Unit: permission_callbacks and schema validators
-- [ ] Smoke tests: route registration and responses
+- [x] Unit: permission_callbacks and schema validators
+- [x] Smoke tests: route registration and responses
 - [ ] Smoke tests: admin menu items and screens render without notices
 
 ---
@@ -125,8 +125,8 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 - [x] Timeout and retry strategies for media sideloading
 
 ### Testing
-- [ ] Unit: cache key building and invalidation
-- [ ] Unit: batch guards enforce limits
+- [x] Unit: cache key building and invalidation
+- [x] Unit: batch guards enforce limits
 
 ---
 

@@ -170,7 +170,7 @@ final class AuditLogger
 
     private function redactPayload(array $payload): array
     {
-        $sensitiveFields = ['password', 'secret', 'key', 'token', 'auth'];
+        $sensitiveFields = ['password', 'secret', 'key', 'token', 'auth', 'email', 'phone'];
         $redacted = $payload;
 
         foreach ($sensitiveFields as $field) {
