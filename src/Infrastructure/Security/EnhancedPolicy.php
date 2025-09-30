@@ -77,12 +77,13 @@ final class EnhancedPolicy
 
     public function getPolicyForTool(string $tool): ?array
     {
-        if (isset($this->policies[$tool])) {
-            return $this->policies[$tool];
-        }
-        // Backward-compat: support legacy keys without dots (e.g., 'postscreate')
+        // Prefer explicit overrides stored using sanitized legacy keys (without dots)
         $legacyKey = str_replace('.', '', $tool);
-        return $this->policies[$legacyKey] ?? null;
+        if (isset($this->policies[$legacyKey])) {
+            return $this->policies[$legacyKey];
+        }
+        // Fallback to exact dotted key (default policies ship with dotted keys)
+        return $this->policies[$tool] ?? null;
     }
 
     public function getAllPolicies(): array
