@@ -77,13 +77,21 @@ final class EnhancedPolicy
 
     public function getPolicyForTool(string $tool): ?array
     {
-        // Prefer explicit overrides stored using sanitized legacy keys (without dots)
         $legacyKey = str_replace('.', '', $tool);
-        if (isset($this->policies[$legacyKey])) {
+        $hasLegacy = array_key_exists($legacyKey, $this->policies);
+        $hasDotted = array_key_exists($tool, $this->policies);
+
+        if ($hasLegacy && $hasDotted) {
+            // Merge: default (dotted) provides full structure; legacy override augments/overrides specific keys
+            return array_replace_recursive($this->policies[$tool], $this->policies[$legacyKey]);
+        }
+        if ($hasLegacy) {
             return $this->policies[$legacyKey];
         }
-        // Fallback to exact dotted key (default policies ship with dotted keys)
-        return $this->policies[$tool] ?? null;
+        if ($hasDotted) {
+            return $this->policies[$tool];
+        }
+        return null;
     }
 
     public function getAllPolicies(): array
