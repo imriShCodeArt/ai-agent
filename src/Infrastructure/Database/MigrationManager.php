@@ -64,6 +64,9 @@ final class MigrationManager
 
     private function getMigrations(): array
     {
+        // Ensure migrations with non-PSR-4 filenames are loaded
+        $this->loadMigrationFiles();
+
         return [
             new Migration(
                 '001_create_actions_table',
@@ -80,6 +83,21 @@ final class MigrationManager
             new \AIAgent\Infrastructure\Database\Migrations\CreatePoliciesTable($this->logger),
             new \AIAgent\Infrastructure\Database\Migrations\EnhanceAuditLogTable($this->logger),
         ];
+    }
+
+    private function loadMigrationFiles(): void
+    {
+        $migrationsDir = __DIR__ . '/Migrations';
+        // Explicitly include known migration files with numeric prefixes
+        $files = [
+            $migrationsDir . '/0003_create_policies_table.php',
+            $migrationsDir . '/0004_enhance_audit_log_table.php',
+        ];
+        foreach ($files as $file) {
+            if (is_readable($file)) {
+                require_once $file;
+            }
+        }
     }
 
     private function getAppliedMigrations(): array
