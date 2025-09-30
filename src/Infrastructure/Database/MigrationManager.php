@@ -76,12 +76,8 @@ final class MigrationManager
                 [$this, 'createSessionsTable'],
                 [$this, 'dropSessionsTable']
             ),
-            new Migration(
-                '003_create_policies_table',
-                'Create policies table for versioned policies',
-                [$this, 'createPoliciesTable'],
-                [$this, 'dropPoliciesTable']
-            ),
+            new \AIAgent\Infrastructure\Database\Migrations\CreatePoliciesTable($this->logger),
+            new \AIAgent\Infrastructure\Database\Migrations\EnhanceAuditLogTable($this->logger),
         ];
     }
 

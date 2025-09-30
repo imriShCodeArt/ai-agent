@@ -6,8 +6,12 @@ use AIAgent\Infrastructure\Hooks\HookableInterface;
 use AIAgent\REST\Controllers\ChatController;
 use AIAgent\REST\Controllers\PostsController;
 use AIAgent\REST\Controllers\LogsController;
+use AIAgent\REST\Controllers\PolicyController;
 use AIAgent\Infrastructure\Security\Policy;
+use AIAgent\Infrastructure\Security\EnhancedPolicy;
+use AIAgent\Infrastructure\Security\PolicyManager;
 use AIAgent\Infrastructure\Audit\AuditLogger;
+use AIAgent\Infrastructure\Audit\EnhancedAuditLogger;
 use AIAgent\Support\Logger;
 use AIAgent\Infrastructure\LLM\LLMProviderInterface;
 use AIAgent\Infrastructure\LLM\OpenAIProvider;
@@ -29,6 +33,21 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 
         $this->container->singleton(AuditLogger::class, function () {
             return new AuditLogger($this->container->get(Logger::class));
+        });
+
+        $this->container->singleton(EnhancedPolicy::class, function () {
+            return new EnhancedPolicy($this->container->get(Logger::class));
+        });
+
+        $this->container->singleton(PolicyManager::class, function () {
+            return new PolicyManager(
+                $this->container->get(Logger::class),
+                $this->container->get(EnhancedPolicy::class)
+            );
+        });
+
+        $this->container->singleton(EnhancedAuditLogger::class, function () {
+            return new EnhancedAuditLogger($this->container->get(Logger::class));
         });
 
         $this->container->singleton(ChatController::class, function () {
@@ -93,6 +112,7 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
         $chatController = $this->container->get(ChatController::class);
         $postsController = $this->container->get(PostsController::class);
         $logsController = $this->container->get(LogsController::class);
+        $policyController = $this->container->get(PolicyController::class);
 
         // Chat endpoints
         register_rest_route('ai-agent/v1', '/chat', [
@@ -306,6 +326,9 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
                 ],
             ],
         ]);
+
+        // Policy management endpoints
+        $policyController->register_routes();
     }
 
     public function checkChatPermissions(): bool
