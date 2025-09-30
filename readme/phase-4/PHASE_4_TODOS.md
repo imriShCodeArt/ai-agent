@@ -46,8 +46,8 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 - [x] Media handling for images (URLs → sideload with validation)
 
 ### Testing
-- [ ] Unit: each tool happy/error paths (missing fields, invalid price)
-- [ ] Unit: schema validation failures return structured errors
+- [x] Unit: each tool happy/error paths (missing fields, invalid price)
+- [x] Unit: schema validation failures return structured errors
 
 ---
 
@@ -107,10 +107,10 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 
 ### Implementation Notes
 - [x] Extend `EnhancedPolicy` to include WC operation categories
-- [ ] Add audit fields specific to commerce (product_id, sku, price_change)
+- [x] Add audit fields specific to commerce (product_id, sku, price_change)
 
 ### Testing
-- [ ] Unit: policy allow/deny with boundary cases (price thresholds)
+- [x] Unit: policy allow/deny with boundary cases (price thresholds)
 - [ ] Unit: audit payload includes commerce metadata
 
 ---
@@ -135,7 +135,7 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 - [x] Read-only order/customer endpoints delivered
 - [x] REST routes secured with middleware and capability checks
 - [x] Admin menu + settings screens available and functional
-- [ ] Policies extended to commerce actions with tests
+- [x] Policies extended to commerce actions with tests
 - [ ] PHPUnit green, PHPStan level 8 clean
 - [x] Documentation updated (README, Developer Guide)
 
