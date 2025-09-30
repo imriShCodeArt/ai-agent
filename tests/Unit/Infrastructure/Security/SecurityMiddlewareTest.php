@@ -137,15 +137,25 @@ final class SecurityMiddlewareTest extends TestCase
         $this->assertTrue(true); // If we get here, no exception was thrown
     }
 
-    private function createMockRequest(array $headers, string $body): \WP_REST_Request
+    private function createMockRequest(array $headers, string $body): object
     {
-        $request = $this->createMock(\WP_REST_Request::class);
-        
-        $request->method('get_header')->willReturnCallback(function($name) use ($headers) {
-            return $headers[$name] ?? '';
-        });
-        
-        $request->method('get_body')->willReturn($body);
+        $request = new class($headers, $body) {
+            private array $headers;
+            private string $body;
+            
+            public function __construct(array $headers, string $body) {
+                $this->headers = $headers;
+                $this->body = $body;
+            }
+            
+            public function get_header(string $name): string {
+                return $this->headers[$name] ?? '';
+            }
+            
+            public function get_body(): string {
+                return $this->body;
+            }
+        };
         
         return $request;
     }

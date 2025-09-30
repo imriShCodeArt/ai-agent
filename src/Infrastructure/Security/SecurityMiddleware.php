@@ -95,7 +95,7 @@ final class SecurityMiddleware
         return true;
     }
 
-    public function validateHmacSignature(\WP_REST_Request $request): bool
+    public function validateHmacSignature($request): bool
     {
         $signature = $request->get_header('x-hmac-signature');
         $algorithm = $request->get_header('x-hmac-algorithm') ?: 'sha256';
@@ -108,7 +108,7 @@ final class SecurityMiddleware
         return $this->hmacSigner->verify($body, $signature, $algorithm);
     }
 
-    public function validateWebhookSignature(\WP_REST_Request $request): bool
+    public function validateWebhookSignature($request): bool
     {
         $signature = $request->get_header('x-hub-signature-256');
         
@@ -125,10 +125,10 @@ final class SecurityMiddleware
         $sanitized = [];
         
         foreach ($data as $key => $value) {
-            $key = sanitize_key($key);
+            $key = function_exists('sanitize_key') ? sanitize_key($key) : preg_replace('/[^a-z0-9_-]/', '', strtolower($key));
             
             if (is_string($value)) {
-                $value = sanitize_text_field($value);
+                $value = function_exists('sanitize_text_field') ? sanitize_text_field($value) : strip_tags($value);
             } elseif (is_array($value)) {
                 $value = $this->sanitizeInput($value);
             } elseif (is_numeric($value)) {
@@ -147,11 +147,11 @@ final class SecurityMiddleware
             'event' => $event,
             'ip' => $this->getClientIp(),
             'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-            'timestamp' => current_time('mysql'),
+            'timestamp' => function_exists('current_time') ? current_time('mysql') : date('Y-m-d H:i:s'),
         ], $context));
     }
 
-    private function authenticateHmac(\WP_REST_Request $request): array
+    private function authenticateHmac($request): array
     {
         $signature = $request->get_header('x-hmac-signature');
         

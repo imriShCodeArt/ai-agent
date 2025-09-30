@@ -89,7 +89,10 @@ final class HmacSignerTest extends TestCase
     public function testVerifyInvalidRequest(): void
     {
         $invalidRequest = [
-            'payload' => ['data' => ['key' => 'value']],
+            'payload' => [
+                'data' => ['key' => 'value'],
+                'timestamp' => time() // Add current timestamp
+            ],
             'signature' => 'invalid-signature',
         ];
         

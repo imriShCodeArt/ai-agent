@@ -60,7 +60,7 @@ final class HmacSigner
             'nonce' => $nonce,
         ];
         
-        $jsonPayload = wp_json_encode($payload);
+        $jsonPayload = function_exists('wp_json_encode') ? wp_json_encode($payload) : json_encode($payload);
         $signature = $this->sign($jsonPayload, $algorithm);
         
         return [
@@ -101,7 +101,7 @@ final class HmacSigner
         }
         
         // Verify signature
-        $jsonPayload = wp_json_encode($payload);
+        $jsonPayload = function_exists('wp_json_encode') ? wp_json_encode($payload) : json_encode($payload);
         $isValid = $this->verify($jsonPayload, $signature, $algorithm);
         
         if (!$isValid) {
@@ -150,7 +150,7 @@ final class HmacSigner
     public function getSecretKey(): string
     {
         if (empty($this->secretKey)) {
-            $this->secretKey = get_option('ai_agent_hmac_secret_key', '');
+            $this->secretKey = function_exists('get_option') ? get_option('ai_agent_hmac_secret_key', '') : '';
             
             if (empty($this->secretKey)) {
                 $this->secretKey = $this->generateSecretKey();
@@ -173,7 +173,9 @@ final class HmacSigner
 
     private function updateSecretKey(string $key): void
     {
-        update_option('ai_agent_hmac_secret_key', $key);
+        if (function_exists('update_option')) {
+            update_option('ai_agent_hmac_secret_key', $key);
+        }
         $this->secretKey = $key;
     }
 }

@@ -15,6 +15,23 @@ final class EnhancedPolicyTest extends TestCase
         $logger = new Logger();
         $this->policy = new EnhancedPolicy($logger);
         $this->policy->disableTimeWindowCheck(); // Disable for testing
+        
+        // Set up test policies
+        $this->policy->updatePolicy('posts.create', [
+            'content_restrictions' => [
+                'blocked_terms' => ['spam', 'viagra', 'casino'],
+                'blocked_patterns' => ['/buy\s+viagra/i', '/casino\s+bonus/i'],
+                'max_length' => 1000
+            ],
+            'rate_limits' => [
+                'max_requests_per_hour' => 100,
+                'max_requests_per_day' => 1000
+            ],
+            'time_windows' => [
+                'allowed_hours' => [9, 10, 11, 12, 13, 14, 15, 16, 17],
+                'allowed_days' => [1, 2, 3, 4, 5]
+            ]
+        ]);
     }
 
     public function testIsAllowedWithValidTool(): void
@@ -115,7 +132,7 @@ final class EnhancedPolicyTest extends TestCase
             $this->assertGreaterThan(0, $policyId);
         } catch (\Exception $e) {
             // Expected in test environment without database
-            $this->assertStringContains('wpdb', $e->getMessage());
+            $this->assertStringContainsString('wpdb', $e->getMessage());
         }
     }
 
@@ -129,7 +146,7 @@ final class EnhancedPolicyTest extends TestCase
             $this->assertIsArray($versions);
         } catch (\Exception $e) {
             // Expected in test environment without database
-            $this->assertStringContains('wpdb', $e->getMessage());
+            $this->assertStringContainsString('wpdb', $e->getMessage());
         }
     }
 
