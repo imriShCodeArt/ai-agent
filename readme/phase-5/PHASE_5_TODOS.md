@@ -20,14 +20,14 @@ Deliver an advanced admin UI for policy management and implement end-to-end revi
 - [x] Version comparison
 
 ### UI/Implementation Notes
-- [ ] Intuitive UX with inline help and tooltips
-- [ ] Real-time validation of policy rules
-- [ ] Persist policies as versioned docs (audit-friendly)
+- [x] Intuitive UX with inline help and tooltips
+- [x] Real-time validation of policy rules
+- [x] Persist policies as versioned docs (audit-friendly)
 
 ### Testing
-- [ ] Unit: schema/validator pass/fail cases
-- [ ] Integration: admin screens render without notices
-- [ ] Snapshot/diff tests for version comparison
+- [*] Unit: schema/validator pass/fail cases
+- [*] Integration: admin screens render without notices
+- [*] Snapshot/diff tests for version comparison
 
 ---
 
