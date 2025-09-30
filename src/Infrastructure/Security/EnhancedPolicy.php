@@ -140,7 +140,7 @@ final class EnhancedPolicy
         }
         
         $this->logger->info('Policy version created', ['tool' => $tool, 'version' => $this->generateVersionNumber($tool)]);
-        return $wpdb->insert_id;
+        return (int) ($wpdb->insert_id ?? 0);
     }
 
     public function getPolicyVersions(string $tool): array

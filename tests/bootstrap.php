@@ -96,7 +96,7 @@ if (!function_exists('admin_url')) {
     function admin_url($path = '') { return '/wp-admin/' . ltrim((string) $path, '/'); }
 }
 if (!function_exists('current_user_can')) {
-    function current_user_can($cap) { return true; }
+    function current_user_can($cap) { return isset($GLOBALS['AI_AGENT_TEST_CURRENT_USER_CAN']) ? (bool) $GLOBALS['AI_AGENT_TEST_CURRENT_USER_CAN'] : true; }
 }
 if (!function_exists('wp_die')) {
     function wp_die($msg) { throw new \RuntimeException((string) $msg); }
@@ -121,6 +121,24 @@ if (!function_exists('esc_attr')) {
 }
 if (!function_exists('wp_nonce_field')) {
     function wp_nonce_field($action, $name) { return ''; }
+}
+if (!function_exists('current_time')) {
+    function current_time($type) { return date('Y-m-d H:i:s'); }
+}
+
+// Provide a global $wpdb stub for most tests
+if (!isset($GLOBALS['wpdb'])) {
+    $GLOBALS['wpdb'] = new class {
+        public string $prefix = 'wp_';
+        public int $insert_id = 1;
+        public string $last_error = '';
+        public function insert($table, $data) { $this->insert_id = 1; return 1; }
+        public function get_var($q){ return null; }
+        public function get_results($q,$type=ARRAY_A){ return []; }
+        public function query($q){ return true; }
+        public function prepare($q){ return $q; }
+        public function get_charset_collate(){ return ''; }
+    };
 }
 
 // WooCommerce-related globals used by Mappers

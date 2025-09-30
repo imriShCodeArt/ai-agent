@@ -59,7 +59,7 @@ final class AuditLogger
             throw new \Exception('Failed to log audit action: ' . $wpdb->last_error);
         }
 
-        $actionId = $wpdb->insert_id;
+        $actionId = (int) ($wpdb->insert_id ?? 0);
         
         $this->logger->info('Audit action logged', [
             'action_id' => $actionId,
