@@ -15,7 +15,7 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 
 ### Core Tasks
 - [x] Ensure WooCommerce dependency detection and graceful disable if missing
-- [ ] Service bindings for WC repositories (products, orders, customers)
+- [x] Service bindings for WC repositories (products, orders, customers)
 - [x] Data mappers for WC objects → domain DTOs (typed, sanitized)
 - [x] Capability map for commerce actions (manage_woocommerce, edit_products, etc.)
 
@@ -58,11 +58,11 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 ### Core Tasks
 - [x] `orders.get` (by id), `orders.search` (status/date/customer)
 - [x] `customers.get` (by id/email), `customers.search`
-- [ ] Summarization helpers (order issue summary, customer profile snapshot)
+- [x] Summarization helpers (order issue summary, customer profile snapshot)
 
 ### Implementation Notes
-- [ ] Read-only for Phase 4; mutations deferred to Phase 5
-- [ ] Pagination & limits with policy-backed rate limits
+- [x] Read-only for Phase 4; mutations deferred to Phase 5
+- [x] Pagination & limits with policy-backed rate limits
 
 ### Testing
 - [ ] Unit: search parameter validation and pagination bounds
@@ -122,7 +122,7 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 ### Core Tasks
 - [x] Caching for product/category lookups (object cache if available)
 - [x] Batch pagination safeguards (max page/size)
-- [ ] Timeout and retry strategies for media sideloading
+- [x] Timeout and retry strategies for media sideloading
 
 ### Testing
 - [ ] Unit: cache key building and invalidation
@@ -137,7 +137,7 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 - [x] Admin menu + settings screens available and functional
 - [ ] Policies extended to commerce actions with tests
 - [ ] PHPUnit green, PHPStan level 8 clean
-- [ ] Documentation updated (README, Developer Guide)
+- [x] Documentation updated (README, Developer Guide)
 
 ---
 
