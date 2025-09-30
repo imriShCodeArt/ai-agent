@@ -111,7 +111,7 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 
 ### Testing
 - [x] Unit: policy allow/deny with boundary cases (price thresholds)
-- [ ] Unit: audit payload includes commerce metadata
+- [x] Unit: audit payload includes commerce metadata
 
 ---
 
