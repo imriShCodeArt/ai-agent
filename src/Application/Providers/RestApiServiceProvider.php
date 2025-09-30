@@ -117,6 +117,11 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 			);
 		});
 
+		// Policy controller
+		$this->container->singleton(PolicyController::class, function () {
+			return new PolicyController($this->container->get(Logger::class));
+		});
+
 		// LLM Provider default binding (OpenAI; can be swapped later)
 		$this->container->singleton(LLMProviderInterface::class, function () {
 			$logger = $this->container->get(Logger::class);
@@ -180,6 +185,11 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 		$reviewController = $this->container->get(ReviewController::class);
 		$wcController = $this->container->get(WooCommerceController::class);
 		$security = $this->container->get(SecurityMiddleware::class);
+
+		// Register policy routes (Phase 5)
+		if (method_exists($policyController, 'register_routes')) {
+			$policyController->register_routes();
+		}
 
 		// Chat endpoints
 		register_rest_route('ai-agent/v1', '/chat', [

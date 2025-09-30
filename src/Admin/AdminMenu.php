@@ -356,67 +356,138 @@ final class AdminMenu
 		?>
 		<div class="wrap">
 			<h1>AI Agent Policies</h1>
-			<p>View and manage policy documents governing tool execution.</p>
-			<p>Policy management UI is minimal for Phase 4; use CLI or DB for advanced edits.</p>
-		</div>
-		<?php
-	}
+			<p>Manage policy documents governing tool execution.</p>
 
-	public function renderReviewsPage(): void
-	{
-		if (!current_user_can('ai_agent_approve_changes')) { wp_die('Insufficient permissions'); }
-		global $wpdb;
-		$table = $wpdb->prefix . 'ai_agent_actions';
-		$rows = $wpdb->get_results("SELECT * FROM $table WHERE status = 'pending' ORDER BY ts DESC LIMIT 50", ARRAY_A);
-		?>
-		<div class="wrap">
-			<h1>AI Agent Reviews</h1>
-			<?php if (empty($rows)): ?>
-				<p>No pending reviews.</p>
-			<?php else: ?>
-				<table class="wp-list-table widefat fixed striped">
-					<thead>
-						<tr>
-							<th>ID</th>
-							<th>Time</th>
-							<th>User</th>
-							<th>Tool</th>
-							<th>Entity</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php foreach ($rows as $r): ?>
-						<tr>
-							<td><?php echo esc_html($r['id']); ?></td>
-							<td><?php echo esc_html($r['ts']); ?></td>
-							<td><?php echo esc_html(get_user_by('id', $r['user_id'])->display_name ?? 'Unknown'); ?></td>
-							<td><?php echo esc_html($r['tool']); ?></td>
-							<td><?php echo esc_html($r['entity_type'] . ' #' . $r['entity_id']); ?></td>
-							<td>
-								<button class="button button-primary" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentApprove(this)">Approve</button>
-								<button class="button" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentReject(this)">Reject</button>
-							</td>
-						</tr>
-						<?php endforeach; ?>
-					</tbody>
-				</table>
-			<?php endif; ?>
+			<h2>Visual Policy Editor</h2>
+			<div id="ai-agent-policy-editor">
+				<p><label>Tool <input type="text" id="ai-agent-policy-tool" placeholder="e.g. products.update"></label></p>
+				<p><label>Policy JSON</label></p>
+				<p><textarea id="ai-agent-policy-json" rows="10" cols="100" placeholder="{\n  \"rate_limits\": { ... }\n}"></textarea></p>
+				<p>
+					<button class="button button-primary" onclick="aiAgentPolicySave()">Save Policy</button>
+					<button class="button" onclick="aiAgentPolicyTest()">Test Policy</button>
+				</p>
+			</div>
+
+			<h2>Import / Export</h2>
+			<p>
+				<button class="button" onclick="aiAgentPolicyExport()">Export Policy</button>
+				<input type="file" id="ai-agent-policy-import-file" accept="application/json" />
+				<button class="button" onclick="aiAgentPolicyImport()">Import</button>
+			</p>
+
+			<h2>Version Comparison</h2>
+			<p>
+				<label>Version 1 <input type="text" id="ai-agent-policy-v1" placeholder="v1"></label>
+				<label>Version 2 <input type="text" id="ai-agent-policy-v2" placeholder="v2"></label>
+				<button class="button" onclick="aiAgentPolicyDiff()">Compare</button>
+			</p>
+			<pre id="ai-agent-policy-diff"></pre>
 		</div>
 		<script>
-		async function aiAgentApprove(btn){
-		  const id = btn.getAttribute('data-id');
-		  await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>'+id+'/approve', { method: 'POST', credentials: 'include' });
-		  location.reload();
+		async function aiAgentPolicySave(){
+		  const tool = document.getElementById('ai-agent-policy-tool').value.trim();
+		  const policy = document.getElementById('ai-agent-policy-json').value;
+		  if(!tool||!policy){ alert('Tool and Policy JSON are required'); return; }
+		  const res = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/policies') ); ?>', {
+		    method: 'POST',
+		    credentials: 'include',
+		    headers: { 'Content-Type': 'application/json' },
+		    body: JSON.stringify({ tool, policy: JSON.parse(policy) })
+		  });
+		  alert(res.ok ? 'Saved' : 'Save failed');
 		}
-		async function aiAgentReject(btn){
-		  const id = btn.getAttribute('data-id');
-		  await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>'+id+'/reject', { method: 'POST', credentials: 'include' });
-		  location.reload();
+		async function aiAgentPolicyTest(){
+		  const tool = document.getElementById('ai-agent-policy-tool').value.trim();
+		  const res = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/policies/') ); ?>'+encodeURIComponent(tool)+'/test', {
+		    method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: {} })
+		  });
+		  const data = await res.json();
+		  alert('Test: '+JSON.stringify(data));
+		}
+		async function aiAgentPolicyExport(){
+		  const tool = document.getElementById('ai-agent-policy-tool').value.trim();
+		  if(!tool){ alert('Set tool'); return; }
+		  const res = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/policies/') ); ?>'+encodeURIComponent(tool), { credentials: 'include' });
+		  const data = await res.json();
+		  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+		  const url = URL.createObjectURL(blob);
+		  const a = document.createElement('a'); a.href = url; a.download = tool+'-policy.json'; a.click(); URL.revokeObjectURL(url);
+		}
+		async function aiAgentPolicyImport(){
+		  const file = document.getElementById('ai-agent-policy-import-file').files[0];
+		  if(!file){ alert('Choose file'); return; }
+		  const text = await file.text();
+		  document.getElementById('ai-agent-policy-json').value = text;
+		}
+		async function aiAgentPolicyDiff(){
+		  const tool = document.getElementById('ai-agent-policy-tool').value.trim();
+		  const v1 = document.getElementById('ai-agent-policy-v1').value.trim();
+		  const v2 = document.getElementById('ai-agent-policy-v2').value.trim();
+		  if(!tool||!v1||!v2){ alert('Set tool and versions'); return; }
+		  const res = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/policies/') ); ?>'+encodeURIComponent(tool)+'/diff?version1='+encodeURIComponent(v1)+'&version2='+encodeURIComponent(v2), { credentials: 'include' });
+		  const data = await res.json();
+		  document.getElementById('ai-agent-policy-diff').textContent = JSON.stringify(data, null, 2);
 		}
 		</script>
 		<?php
 	}
+
+    public function renderReviewsPage(): void
+    {
+        if (!current_user_can('ai_agent_approve_changes')) { wp_die('Insufficient permissions'); }
+        global $wpdb;
+        $table = $wpdb->prefix . 'ai_agent_actions';
+        $rows = $wpdb->get_results("SELECT * FROM $table WHERE status = 'pending' ORDER BY ts DESC LIMIT 50", ARRAY_A);
+        ?>
+        <div class="wrap">
+            <h1>AI Agent Reviews</h1>
+            <?php if (empty($rows)): ?>
+                <p>No pending reviews.</p>
+            <?php else: ?>
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Tool</th>
+                            <th>Entity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($rows as $r): ?>
+                        <tr>
+                            <td><?php echo esc_html($r['id']); ?></td>
+                            <td><?php echo esc_html($r['ts']); ?></td>
+                            <td><?php echo esc_html(get_user_by('id', $r['user_id'])->display_name ?? 'Unknown'); ?></td>
+                            <td><?php echo esc_html($r['tool']); ?></td>
+                            <td><?php echo esc_html($r['entity_type'] . ' #' . $r['entity_id']); ?></td>
+                            <td>
+                                <button class="button button-primary" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentApprove(this)">Approve</button>
+                                <button class="button" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentReject(this)">Reject</button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+        <script>
+        async function aiAgentApprove(btn){
+          const id = btn.getAttribute('data-id');
+          await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>'+id+'/approve', { method: 'POST', credentials: 'include' });
+          location.reload();
+        }
+        async function aiAgentReject(btn){
+          const id = btn.getAttribute('data-id');
+          await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>'+id+'/reject', { method: 'POST', credentials: 'include' });
+          location.reload();
+        }
+        </script>
+        <?php
+    }
 
     private function getSystemStatus(): string
     {
