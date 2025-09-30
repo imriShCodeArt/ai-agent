@@ -20,7 +20,7 @@ final class EnhancedPolicyTest extends TestCase
         $this->policy->updatePolicy('postscreate', [
             'content_restrictions' => [
                 'blocked_terms' => ['spam', 'viagra', 'casino'],
-                'blocked_patterns' => ['/buy\s+viagra/i', '/casino\s+bonus/i'],
+                'blocked_patterns' => ['/buy\s+now/i', '/casino\s+bonus/i'],
                 'max_length' => 1000
             ],
             'rate_limits' => [
@@ -72,12 +72,12 @@ final class EnhancedPolicyTest extends TestCase
         
         $this->assertFalse($result['allowed']);
         $this->assertEquals('blocked_term', $result['reason']);
-        $this->assertStringContains('spam', $result['details']);
+        $this->assertStringContainsString('spam', $result['details']);
     }
 
     public function testContentRestrictionsBlockedPattern(): void
     {
-        $result = $this->policy->isAllowed('posts.create', null, ['post_content' => 'Buy viagra now!']);
+        $result = $this->policy->isAllowed('posts.create', null, ['post_content' => 'Buy viagra online']);
         
         $this->assertFalse($result['allowed']);
         $this->assertEquals('blocked_pattern', $result['reason']);
