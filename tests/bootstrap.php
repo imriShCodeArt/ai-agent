@@ -76,6 +76,47 @@ if (!function_exists('wp_kses_post')) {
     function wp_kses_post($content) { return (string) $content; }
 }
 
+// Admin/menu related stubs for rendering/admin tests
+if (!function_exists('add_menu_page')) {
+    function add_menu_page($page_title, $menu_title, $capability, $menu_slug, $callback = null, $icon_url = null, $position = null) {}
+}
+if (!function_exists('add_submenu_page')) {
+    function add_submenu_page($parent_slug, $page_title, $menu_title, $capability, $menu_slug, $callback = null) {}
+}
+if (!function_exists('wp_redirect')) {
+    function wp_redirect($url) { return true; }
+}
+if (!function_exists('admin_url')) {
+    function admin_url($path = '') { return '/wp-admin/' . ltrim((string) $path, '/'); }
+}
+if (!function_exists('current_user_can')) {
+    function current_user_can($cap) { return true; }
+}
+if (!function_exists('wp_die')) {
+    function wp_die($msg) { throw new \RuntimeException((string) $msg); }
+}
+if (!function_exists('get_role')) {
+    function get_role($role) { return (object) ['name' => $role]; }
+}
+if (!function_exists('get_user_by')) {
+    function get_user_by($field, $value) { return (object) ['display_name' => 'User', 'ID' => 1]; }
+}
+if (!function_exists('get_users')) {
+    function get_users() { return [(object) ['ID' => 1, 'display_name' => 'User']]; }
+}
+if (!function_exists('selected')) {
+    function selected($a, $b) { return $a === $b ? 'selected(1)' : ''; }
+}
+if (!function_exists('esc_html')) {
+    function esc_html($s) { return (string) $s; }
+}
+if (!function_exists('esc_attr')) {
+    function esc_attr($s) { return (string) $s; }
+}
+if (!function_exists('wp_nonce_field')) {
+    function wp_nonce_field($action, $name) { return ''; }
+}
+
 // WooCommerce-related globals used by Mappers
 if (!function_exists('get_woocommerce_currency')) {
     function get_woocommerce_currency() { return 'USD'; }
