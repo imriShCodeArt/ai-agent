@@ -156,6 +156,10 @@ final class SecurityMiddlewareTest extends TestCase
             public function get_body(): string {
                 return $this->body;
             }
+            
+            public function get_route(): string {
+                return '/test/route';
+            }
         };
     }
 }

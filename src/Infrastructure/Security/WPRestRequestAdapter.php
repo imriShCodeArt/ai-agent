@@ -7,7 +7,8 @@ namespace AIAgent\Infrastructure\Security;
  */
 final class WPRestRequestAdapter implements RequestInterface
 {
-    private \WP_REST_Request $request;
+    /** @var \WP_REST_Request */
+    private $request;
 
     public function __construct(\WP_REST_Request $request)
     {
@@ -23,5 +24,10 @@ final class WPRestRequestAdapter implements RequestInterface
     public function get_body(): string
     {
         return (string) $this->request->get_body();
+    }
+
+    public function get_route(): string
+    {
+        return (string) $this->request->get_route();
     }
 }
