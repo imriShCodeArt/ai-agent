@@ -4,11 +4,11 @@ namespace AIAgent\Infrastructure\WC;
 
 final class Mappers
 {
-	/**
-	 * @param \WC_Product $product
-	 * @return array<string,mixed>
-	 */
-	public static function mapProduct($product): array
+    /**
+     * @param object $product
+     * @return array<string,mixed>
+     */
+    public static function mapProduct($product): array
 	{
 		return [
 			'id' => $product->get_id(),
@@ -21,11 +21,11 @@ final class Mappers
 		];
 	}
 
-	/**
-	 * @param \WC_Order $order
-	 * @return array<string,mixed>
-	 */
-	public static function mapOrder($order): array
+    /**
+     * @param object $order
+     * @return array<string,mixed>
+     */
+    public static function mapOrder($order): array
 	{
 		$items = [];
 		foreach ($order->get_items() as $item) {
@@ -49,11 +49,11 @@ final class Mappers
 		];
 	}
 
-	/**
-	 * @param \WC_Customer $customer
-	 * @return array<string,mixed>
-	 */
-	public static function mapCustomer($customer): array
+    /**
+     * @param object $customer
+     * @return array<string,mixed>
+     */
+    public static function mapCustomer($customer): array
 	{
 		return [
 			'id' => $customer->get_id(),

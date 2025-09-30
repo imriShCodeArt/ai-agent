@@ -21,7 +21,11 @@ final class WooCommerceController extends BaseRestController
 	 * @param \WP_REST_Request $request
 	 * @return \WP_REST_Response|\WP_Error
 	 */
-	public function productsSearch($request)
+    /**
+     * @param \WP_REST_Request $request
+     * @return \WP_REST_Response|\WP_Error
+     */
+    public function productsSearch($request)
 	{
 		if (!function_exists('get_post_type_object')) {
 			return new \WP_Error('wp_missing', 'WordPress functions unavailable');
@@ -88,8 +92,8 @@ final class WooCommerceController extends BaseRestController
 		}
 
 		// Batch pagination safeguards
-		if ($args['posts_per_page'] > 50) { $args['posts_per_page'] = 50; }
-		if ($args['paged'] < 1) { $args['paged'] = 1; }
+        $args['posts_per_page'] = min((int) $args['posts_per_page'], 50);
+        $args['paged'] = max((int) $args['paged'], 1);
 		// Simple object cache to avoid duplicate queries in short window
 		$cacheKey = 'ai_agent_wc_products_' . md5(wp_json_encode($args));
 		$cached = wp_cache_get($cacheKey, 'ai_agent');
@@ -126,7 +130,11 @@ final class WooCommerceController extends BaseRestController
 	/**
 	 * GET /ai-agent/v1/wc/orders
 	 */
-	public function ordersSearch($request)
+    /**
+     * @param \WP_REST_Request $request
+     * @return \WP_REST_Response|\WP_Error
+     */
+    public function ordersSearch($request)
 	{
 		if (!class_exists('WC_Order_Query')) {
 			return new \WP_Error('wc_missing', 'WooCommerce is not installed/active');
@@ -143,13 +151,17 @@ final class WooCommerceController extends BaseRestController
 		$orders = $query->get_orders();
 		$items = [];
 		foreach ($orders as $order) { $items[] = Mappers::mapOrder($order); }
-		return new \WP_REST_Response(['items' => $items, 'page' => $args['page'], 'per_page' => $args['limit']]);
+        return new \WP_REST_Response(['items' => $items, 'page' => $args['page'], 'per_page' => $args['limit']]);
 	}
 
 	/**
 	 * GET /ai-agent/v1/wc/customers
 	 */
-	public function customersSearch($request)
+    /**
+     * @param \WP_REST_Request $request
+     * @return \WP_REST_Response|\WP_Error
+     */
+    public function customersSearch($request)
 	{
 		if (!class_exists('WC_Customer')) {
 			return new \WP_Error('wc_missing', 'WooCommerce is not installed/active');

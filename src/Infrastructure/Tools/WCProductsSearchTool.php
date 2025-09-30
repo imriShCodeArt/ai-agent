@@ -6,7 +6,7 @@ final class WCProductsSearchTool implements ToolInterface
 {
 	public function getName(): string { return 'products.search'; }
 	public function getDescription(): string { return 'Search WooCommerce products by filters (sku, category, price).'; }
-	public function getSchema(): array
+    public function getInputSchema(): array
 	{
 		return [
 			'required' => [],
@@ -23,7 +23,7 @@ final class WCProductsSearchTool implements ToolInterface
 	}
 	public function execute(array $input): array
 	{
-		if (!Validator::validate($this->getSchema(), $input)) {
+        if (!Validator::validate($this->getInputSchema(), $input)) {
 			return ['ok' => false, 'error' => 'validation_failed'];
 		}
 		$enabled = (bool) apply_filters('ai_agent_wc_enabled', (bool) get_option('ai_agent_woocommerce_enabled', false));
