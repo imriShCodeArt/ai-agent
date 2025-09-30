@@ -92,7 +92,7 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 ### Testing
 - [x] Unit: permission_callbacks and schema validators
 - [x] Smoke tests: route registration and responses
-- [ ] Smoke tests: admin menu items and screens render without notices
+- [x] Smoke tests: admin menu items and screens render without notices
 
 ---
 
