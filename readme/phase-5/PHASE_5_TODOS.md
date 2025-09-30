@@ -14,10 +14,10 @@ Deliver an advanced admin UI for policy management and implement end-to-end revi
 **Timeline**: Week 9
 
 ### Core Tasks
-- [ ] Visual policy editor
-- [ ] Rule testing interface
-- [ ] Policy import/export
-- [ ] Version comparison
+- [x] Visual policy editor
+- [x] Rule testing interface
+- [x] Policy import/export
+- [x] Version comparison
 
 ### UI/Implementation Notes
 - [ ] Intuitive UX with inline help and tooltips
