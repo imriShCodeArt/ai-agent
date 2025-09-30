@@ -62,17 +62,17 @@ final class WooCommerceController extends BaseRestController
 
 		$priceMin = $request->get_param('price_min');
 		$priceMax = $request->get_param('price_max');
-		if ($priceMin !== null || $priceMax !== null) {
-			$range = ['key' => '_price', 'type' => 'NUMERIC'];
-			if ($priceMin !== null) {
-				$range['value'][] = (float) $priceMin;
-			}
-			if ($priceMax !== null) {
-				$range['value'][] = (float) $priceMax;
-			}
-			$range['compare'] = (isset($range['value'][0]) && isset($range['value'][1])) ? 'BETWEEN' : '>=';
-			$metaQuery[] = $range;
-		}
+        if ($priceMin !== null || $priceMax !== null) {
+            $values = [];
+            if ($priceMin !== null) { $values[] = (float) $priceMin; }
+            if ($priceMax !== null) { $values[] = (float) $priceMax; }
+            $metaQuery[] = [
+                'key' => '_price',
+                'type' => 'NUMERIC',
+                'value' => $values,
+                'compare' => count($values) === 2 ? 'BETWEEN' : '>=',
+            ];
+        }
 
 		if (!empty($metaQuery)) {
 			$args['meta_query'] = $metaQuery;

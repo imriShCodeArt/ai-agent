@@ -77,21 +77,30 @@ if (!function_exists('wp_get_post_terms')) {
 
 if (!class_exists('WP_Error')) {
     class WP_Error {
-        private $code; private $message;
-        public function __construct($code, $message) { $this->code = $code; $this->message = $message; }
+        private $code; private $message; private $data;
+        public function __construct($code, $message = '', $data = null) { $this->code = $code; $this->message = $message; $this->data = $data; }
         public function get_error_code() { return $this->code; }
         public function get_error_message() { return $this->message; }
+        public function get_error_data() { return $this->data; }
     }
 }
 
 if (!class_exists('WP_REST_Response')) {
     class WP_REST_Response {
-        public function __construct($data) { $this->data = $data; }
+        public $data; public $status; public $headers;
+        public function __construct($data, $status = 200, $headers = []) { $this->data = $data; $this->status = $status; $this->headers = $headers; }
     }
 }
 
 if (!class_exists('WP_REST_Request')) {
-    class WP_REST_Request { public function get_param($k) { return null; } }
+    class WP_REST_Request {
+        private $params = []; private $headers = [];
+        public function __construct($params = [], $headers = []) { $this->params = $params; $this->headers = $headers; }
+        public function get_param($k) { return $this->params[$k] ?? null; }
+        public function get_header($k) { $k = strtolower($k); return $this->headers[$k] ?? null; }
+        public function get_body() { return ''; }
+        public function get_route() { return '/'; }
+    }
 }
 
 
