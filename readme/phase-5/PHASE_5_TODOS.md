@@ -36,7 +36,7 @@ Deliver an advanced admin UI for policy management and implement end-to-end revi
 **Timeline**: Week 10
 
 ### Core Tasks
-- [ ] Review interface
+- [x] Review interface
 - [ ] Side-by-side diff viewer
 - [ ] Batch approval system
 - [ ] Comment and feedback system
@@ -57,7 +57,7 @@ Deliver an advanced admin UI for policy management and implement end-to-end revi
 
 ## 🌐 REST/API & Security
 - [ ] Policy CRUD endpoints (versioned, capability-gated)
-- [ ] Review actions (list, approve, reject, comment)
+- [x] Review actions (list, approve, reject, comment)
 - [ ] Notifications endpoints/hooks
 - [ ] Nonce + capability checks across admin actions
 
