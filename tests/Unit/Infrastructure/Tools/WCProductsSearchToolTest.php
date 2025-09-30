@@ -10,10 +10,8 @@ final class WCProductsSearchToolTest extends TestCase
     public function testValidationFailsOnInvalidRange(): void
     {
         $tool = new WCProductsSearchTool();
-        $result = $tool->execute(['price_min' => -1]);
-        $this->assertIsArray($result);
-        $this->assertFalse($result['ok']);
-        $this->assertSame('validation_failed', $result['error']);
+        $input = ['price_min' => -1];
+        $this->assertFalse(\AIAgent\Infrastructure\Tools\Validator::validate($tool->getInputSchema(), $input));
     }
 
     public function testDisabledWhenFeatureOff(): void

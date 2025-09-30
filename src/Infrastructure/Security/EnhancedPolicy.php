@@ -490,11 +490,10 @@ final class EnhancedPolicy
 
     private function sanitizeToolName(string $tool): string
     {
-        if (function_exists('sanitize_key')) {
-            $sanitized = sanitize_key($tool);
-            return $sanitized !== null ? $sanitized : '';
-        }
-        return preg_replace('/[^a-z0-9_-]/', '', strtolower($tool)) ?: '';
+        // Preserve dots in tool names (e.g., products.update) while removing other unsafe chars
+        $lower = strtolower($tool);
+        $sanitized = preg_replace('/[^a-z0-9_.-]/', '', $lower);
+        return $sanitized !== null ? $sanitized : '';
     }
 
     private function sanitizeEntityId(?int $entityId): ?int
