@@ -45,7 +45,7 @@ final class OAuth2Provider
         return $url;
     }
 
-    public function exchangeCodeForToken(string $code, string $state = null): array
+    public function exchangeCodeForToken(string $code, ?string $state = null): array
     {
         if (!$this->validateState($state)) {
             throw new \InvalidArgumentException('Invalid state parameter');
@@ -316,11 +316,11 @@ final class OAuth2Provider
         return bin2hex(random_bytes(16));
     }
 
-    private function validateState(string $state): bool
+    private function validateState(?string $state): bool
     {
         // In a real implementation, you would store and validate the state
         // For now, we'll just check if it's a valid hex string
-        return ctype_xdigit($state) && strlen($state) === 32;
+        return $state !== null && ctype_xdigit($state) && strlen($state) === 32;
     }
 
     private function generateApplicationPassword(): string

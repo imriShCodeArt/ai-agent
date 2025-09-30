@@ -11,10 +11,11 @@ final class PolicyController extends BaseRestController
 {
     private PolicyManager $policyManager;
     private EnhancedAuditLogger $auditLogger;
+    private Logger $logger;
 
     public function __construct(Logger $logger)
     {
-        parent::__construct($logger);
+        $this->logger = $logger;
         
         $enhancedPolicy = new EnhancedPolicy($logger);
         $this->policyManager = new PolicyManager($logger, $enhancedPolicy);
@@ -376,7 +377,7 @@ final class PolicyController extends BaseRestController
         ];
     }
 
-    public function validate_policy_data($value): bool
+    public function validate_policy_data(mixed $value): bool
     {
         if (!is_array($value)) {
             return false;

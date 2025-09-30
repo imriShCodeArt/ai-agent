@@ -2,10 +2,28 @@
 
 namespace AIAgent\Infrastructure\Database\Migrations;
 
-use AIAgent\Infrastructure\Database\Migration;
+use AIAgent\Infrastructure\Database\MigrationInterface;
+use AIAgent\Support\Logger;
 
-class EnhanceAuditLogTable extends Migration
+class EnhanceAuditLogTable implements MigrationInterface
 {
+    private Logger $logger;
+
+    public function __construct(Logger $logger)
+    {
+        $this->logger = $logger;
+    }
+
+    public function getVersion(): string
+    {
+        return '0004_enhance_audit_log_table';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Enhance audit log table with policy versioning and error taxonomy';
+    }
+
     public function up(): void
     {
         global $wpdb;

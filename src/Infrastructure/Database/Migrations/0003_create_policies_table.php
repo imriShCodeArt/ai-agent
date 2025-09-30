@@ -2,10 +2,28 @@
 
 namespace AIAgent\Infrastructure\Database\Migrations;
 
-use AIAgent\Infrastructure\Database\Migration;
+use AIAgent\Infrastructure\Database\MigrationInterface;
+use AIAgent\Support\Logger;
 
-class CreatePoliciesTable extends Migration
+class CreatePoliciesTable implements MigrationInterface
 {
+    private Logger $logger;
+
+    public function __construct(Logger $logger)
+    {
+        $this->logger = $logger;
+    }
+
+    public function getVersion(): string
+    {
+        return '0003_create_policies_table';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Create policies table for versioned policies';
+    }
+
     public function up(): void
     {
         global $wpdb;

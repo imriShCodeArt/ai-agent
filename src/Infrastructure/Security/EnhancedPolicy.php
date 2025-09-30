@@ -467,7 +467,7 @@ final class EnhancedPolicy
         return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
     }
 
-    private function generateVersionNumber(string $tool): string
+    public function generateVersionNumber(string $tool): string
     {
         $versions = $this->getPolicyVersions($tool);
         $latestVersion = $versions[0]['version'] ?? '0.0.0';
@@ -481,9 +481,10 @@ final class EnhancedPolicy
     private function sanitizeToolName(string $tool): string
     {
         if (function_exists('sanitize_key')) {
-            return sanitize_key($tool);
+            $sanitized = sanitize_key($tool);
+            return $sanitized !== null ? $sanitized : '';
         }
-        return preg_replace('/[^a-z0-9_-]/', '', strtolower($tool));
+        return preg_replace('/[^a-z0-9_-]/', '', strtolower($tool)) ?: '';
     }
 
     private function sanitizeEntityId(?int $entityId): ?int
