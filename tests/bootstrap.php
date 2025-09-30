@@ -139,6 +139,7 @@ if (!isset($GLOBALS['wpdb'])) {
         public int $insert_id = 1;
         public string $last_error = '';
         public function insert($table, $data) { $this->insert_id = 1; return 1; }
+        public function update($table, $data, $where = []) { return 1; }
         public function get_var($q){ return null; }
         public function get_results($q,$type=ARRAY_A){ return []; }
         public function query($q){ return true; }
