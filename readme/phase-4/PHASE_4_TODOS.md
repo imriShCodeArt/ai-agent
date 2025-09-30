@@ -75,7 +75,8 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 **Timeline**: Week 8
 
 ### REST
-- [ ] Namespaced routes under `/ai-agent/v1/wc/*`
+- [x] Namespaced routes under `/ai-agent/v1/wc/*`
+- [x] Read-only products search endpoint (`/wc/products`)
 - [ ] Security middleware (HMAC/OAuth2/app passwords) applied
 - [ ] Input validation, capability checks, audit logging
 
