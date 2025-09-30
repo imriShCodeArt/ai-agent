@@ -191,8 +191,8 @@ final class EnhancedPolicyTest extends TestCase
         $allPolicies = $this->policy->getAllPolicies();
         $this->assertIsArray($allPolicies);
         
-        $postsCreatePolicy = $this->policy->getPolicyForTool('postscreate');
-        $postsUpdatePolicy = $this->policy->getPolicyForTool('postsupdate');
+        $postsCreatePolicy = $this->policy->getPolicyForTool('posts.create');
+        $postsUpdatePolicy = $this->policy->getPolicyForTool('posts.update');
         
         $this->assertIsArray($postsCreatePolicy);
         $this->assertIsArray($postsUpdatePolicy);

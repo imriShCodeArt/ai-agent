@@ -161,7 +161,7 @@ final class EnhancedPolicy
         $limits = $policy['rate_limits'];
         $currentHour = date('Y-m-d H:00:00');
         $currentDay = date('Y-m-d');
-        $userId = get_current_user_id();
+        $userId = function_exists('get_current_user_id') ? get_current_user_id() : 0;
         $ip = $this->getClientIp();
 
         // Check hourly limit
@@ -351,10 +351,10 @@ final class EnhancedPolicy
         }
 
         $workflows = $policy['approval_workflows'];
-        $userId = get_current_user_id();
+        $userId = function_exists('get_current_user_id') ? get_current_user_id() : 0;
         
         // Check if user has bypass permission
-        if (current_user_can('manage_options')) {
+        if (function_exists('current_user_can') && current_user_can('manage_options')) {
             return ['allowed' => true, 'reason' => 'admin_bypass', 'details' => 'Admin user bypassed approval workflow'];
         }
 
