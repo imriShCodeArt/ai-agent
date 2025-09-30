@@ -3,6 +3,7 @@
 namespace AIAgent\Infrastructure\Database;
 
 use AIAgent\Support\Logger;
+use AIAgent\Infrastructure\Database\MigrationInterface;
 
 final class MigrationManager
 {
@@ -76,12 +77,8 @@ final class MigrationManager
                 [$this, 'createSessionsTable'],
                 [$this, 'dropSessionsTable']
             ),
-            new Migration(
-                '003_create_policies_table',
-                'Create policies table for versioned policies',
-                [$this, 'createPoliciesTable'],
-                [$this, 'dropPoliciesTable']
-            ),
+            new \AIAgent\Infrastructure\Database\Migrations\CreatePoliciesTable($this->logger),
+            new \AIAgent\Infrastructure\Database\Migrations\EnhanceAuditLogTable($this->logger),
         ];
     }
 
@@ -94,7 +91,7 @@ final class MigrationManager
         return $results ?: [];
     }
 
-    private function findMigrationByVersion(array $migrations, string $version): ?Migration
+    private function findMigrationByVersion(array $migrations, string $version): ?MigrationInterface
     {
         foreach ($migrations as $migration) {
             if ($migration->getVersion() === $version) {
@@ -104,7 +101,7 @@ final class MigrationManager
         return null;
     }
 
-    private function runMigration(Migration $migration): void
+    private function runMigration(MigrationInterface $migration): void
     {
         global $wpdb;
         $table_name = $wpdb->prefix . $this->tableName;
@@ -128,7 +125,7 @@ final class MigrationManager
         }
     }
 
-    private function rollbackMigration(Migration $migration): void
+    private function rollbackMigration(MigrationInterface $migration): void
     {
         global $wpdb;
         $table_name = $wpdb->prefix . $this->tableName;
