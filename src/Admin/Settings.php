@@ -25,6 +25,12 @@ final class Settings
         register_setting('ai_agent_settings', 'ai_agent_blocked_terms');
         register_setting('ai_agent_settings', 'ai_agent_allowed_hours');
         register_setting('ai_agent_settings', 'ai_agent_woocommerce_enabled');
+        register_setting('ai_agent_settings', 'ai_agent_oauth2_client_id');
+        register_setting('ai_agent_settings', 'ai_agent_oauth2_client_secret');
+        register_setting('ai_agent_settings', 'ai_agent_oauth2_authorization_url');
+        register_setting('ai_agent_settings', 'ai_agent_oauth2_token_url');
+        register_setting('ai_agent_settings', 'ai_agent_oauth2_user_info_url');
+        register_setting('ai_agent_settings', 'ai_agent_oauth2_scopes');
 
         $this->logger->info('AI Agent settings registered');
     }
@@ -171,6 +177,29 @@ final class Settings
                     </tr>
                 </table>
 
+                <h2>Integrations</h2>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">WooCommerce</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="ai_agent_woocommerce_enabled" value="1" <?php checked($settings['woocommerce_enabled']); ?>> Enable WooCommerce features
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">OAuth2</th>
+                        <td>
+                            <p><label>Client ID <input type="text" name="ai_agent_oauth2_client_id" value="<?php echo esc_attr(get_option('ai_agent_oauth2_client_id', '')); ?>" /></label></p>
+                            <p><label>Client Secret <input type="password" name="ai_agent_oauth2_client_secret" value="<?php echo esc_attr(get_option('ai_agent_oauth2_client_secret', '')); ?>" /></label></p>
+                            <p><label>Authorization URL <input type="url" name="ai_agent_oauth2_authorization_url" value="<?php echo esc_attr(get_option('ai_agent_oauth2_authorization_url', '')); ?>" /></label></p>
+                            <p><label>Token URL <input type="url" name="ai_agent_oauth2_token_url" value="<?php echo esc_attr(get_option('ai_agent_oauth2_token_url', '')); ?>" /></label></p>
+                            <p><label>User Info URL <input type="url" name="ai_agent_oauth2_user_info_url" value="<?php echo esc_attr(get_option('ai_agent_oauth2_user_info_url', '')); ?>" /></label></p>
+                            <p><label>Scopes (comma separated) <input type="text" name="ai_agent_oauth2_scopes" value="<?php echo esc_attr(implode(',', (array) get_option('ai_agent_oauth2_scopes', ['read','write']))); ?>" /></label></p>
+                        </td>
+                    </tr>
+                </table>
+
                 <?php submit_button('Save Settings'); ?>
             </form>
 
@@ -212,7 +241,8 @@ final class Settings
                     <td>
                         <?php
                         $user = get_user_by('login', 'ai_agent_svc');
-                        echo $user ? '✅ Created (ID: ' . $user->ID . ')' : '❌ Not found';
+                        // @phpstan-ignore-next-line WP_User available at runtime in WP
+                        echo $user ? '✅ Created (ID: ' . (int) $user->ID . ')' : '❌ Not found';
                         ?>
                     </td>
                 </tr>
@@ -242,6 +272,15 @@ final class Settings
             'allowed_hours' => array_map('intval', $_POST['ai_agent_allowed_hours'] ?? []),
             'woocommerce_enabled' => isset($_POST['ai_agent_woocommerce_enabled']),
         ];
+
+        // Additional integration options
+        update_option('ai_agent_oauth2_client_id', sanitize_text_field((string) ($_POST['ai_agent_oauth2_client_id'] ?? '')));
+        update_option('ai_agent_oauth2_client_secret', sanitize_text_field((string) ($_POST['ai_agent_oauth2_client_secret'] ?? '')));
+        update_option('ai_agent_oauth2_authorization_url', esc_url_raw((string) ($_POST['ai_agent_oauth2_authorization_url'] ?? '')));
+        update_option('ai_agent_oauth2_token_url', esc_url_raw((string) ($_POST['ai_agent_oauth2_token_url'] ?? '')));
+        update_option('ai_agent_oauth2_user_info_url', esc_url_raw((string) ($_POST['ai_agent_oauth2_user_info_url'] ?? '')));
+        $scopes = array_filter(array_map('trim', explode(',', (string) ($_POST['ai_agent_oauth2_scopes'] ?? 'read,write'))));
+        update_option('ai_agent_oauth2_scopes', $scopes);
 
         foreach ($settings as $key => $value) {
             update_option('ai_agent_' . $key, $value);

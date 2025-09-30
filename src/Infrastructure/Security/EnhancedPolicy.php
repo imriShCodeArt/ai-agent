@@ -77,7 +77,21 @@ final class EnhancedPolicy
 
     public function getPolicyForTool(string $tool): ?array
     {
-        return $this->policies[$tool] ?? null;
+        $legacyKey = str_replace('.', '', $tool);
+        $hasLegacy = array_key_exists($legacyKey, $this->policies);
+        $hasDotted = array_key_exists($tool, $this->policies);
+
+        if ($hasLegacy && $hasDotted) {
+            // Merge: default (dotted) provides full structure; legacy override augments/overrides specific keys
+            return array_replace_recursive($this->policies[$tool], $this->policies[$legacyKey]);
+        }
+        if ($hasLegacy) {
+            return $this->policies[$legacyKey];
+        }
+        if ($hasDotted) {
+            return $this->policies[$tool];
+        }
+        return null;
     }
 
     public function getAllPolicies(): array
@@ -126,7 +140,7 @@ final class EnhancedPolicy
         }
         
         $this->logger->info('Policy version created', ['tool' => $tool, 'version' => $this->generateVersionNumber($tool)]);
-        return $wpdb->insert_id;
+        return (int) ($wpdb->insert_id ?? 0);
     }
 
     public function getPolicyVersions(string $tool): array
@@ -319,6 +333,9 @@ final class EnhancedPolicy
         
         // Check allowed post types
         if (isset($rules['allowed_post_types']) && $entityId) {
+            if (!function_exists('get_post_type')) {
+                return ['allowed' => true, 'reason' => 'no_entity_rules_env', 'details' => 'WP not available'];
+            }
             $postType = get_post_type($entityId);
             if ($postType && !in_array($postType, $rules['allowed_post_types'], true)) {
                 return [
@@ -331,6 +348,9 @@ final class EnhancedPolicy
 
         // Check allowed statuses
         if (isset($rules['allowed_statuses']) && $entityId) {
+            if (!function_exists('get_post_status')) {
+                return ['allowed' => true, 'reason' => 'no_entity_rules_env', 'details' => 'WP not available'];
+            }
             $status = get_post_status($entityId);
             if ($status && !in_array($status, $rules['allowed_statuses'], true)) {
                 return [
@@ -402,6 +422,11 @@ final class EnhancedPolicy
                     break;
                 case 'field_length_greater':
                     if (strlen($fields[$field] ?? '') > (int) $value) {
+                        return true;
+                    }
+                    break;
+                case 'field_numeric_greater':
+                    if (isset($fields[$field]) && is_numeric($fields[$field]) && (float) $fields[$field] > (float) $value) {
                         return true;
                     }
                     break;
@@ -485,11 +510,10 @@ final class EnhancedPolicy
 
     private function sanitizeToolName(string $tool): string
     {
-        if (function_exists('sanitize_key')) {
-            $sanitized = sanitize_key($tool);
-            return $sanitized !== null ? $sanitized : '';
-        }
-        return preg_replace('/[^a-z0-9_-]/', '', strtolower($tool)) ?: '';
+        // Preserve dots in tool names (e.g., products.update) while removing other unsafe chars
+        $lower = strtolower($tool);
+        $sanitized = preg_replace('/[^a-z0-9_.-]/', '', $lower);
+        return $sanitized !== null ? $sanitized : '';
     }
 
     private function sanitizeEntityId(?int $entityId): ?int
@@ -519,6 +543,55 @@ final class EnhancedPolicy
     private function getDefaultPolicies(): array
     {
         return [
+            'products.create' => [
+                'rate_limits' => [
+                    'per_hour' => 50,
+                    'per_day' => 200,
+                    'per_ip_hour' => 100,
+                ],
+                'entity_rules' => [
+                    'requires_approval' => false,
+                    'price_threshold_approval' => 500.0,
+                ],
+                'approval_workflows' => [
+                    [
+                        'name' => 'High Price Creation',
+                        'conditions' => [
+                            ['type' => 'field_length_greater', 'field' => 'title', 'value' => 120],
+                        ],
+                    ],
+                ],
+            ],
+            'products.update' => [
+                'rate_limits' => [
+                    'per_hour' => 100,
+                    'per_day' => 500,
+                    'per_ip_hour' => 200,
+                ],
+                'approval_workflows' => [
+                    [
+                        'name' => 'Large Price Change',
+                        'conditions' => [
+                            ['type' => 'field_numeric_greater', 'field' => 'price', 'value' => 500],
+                        ],
+                    ],
+                ],
+            ],
+            'products.bulkUpdate' => [
+                'rate_limits' => [
+                    'per_hour' => 200,
+                    'per_day' => 1000,
+                    'per_ip_hour' => 300,
+                ],
+                'approval_workflows' => [
+                    [
+                        'name' => 'Bulk Sensitive Change',
+                        'conditions' => [
+                            ['type' => 'tool_equals', 'field' => '', 'value' => 'products.bulkUpdate'],
+                        ],
+                    ],
+                ],
+            ],
             'posts.create' => [
                 'rate_limits' => [
                     'per_hour' => 20,

@@ -11,6 +11,13 @@ A powerful WordPress plugin that provides AI-powered content management capabili
 - **Role-Based Access Control**: Granular permissions system
 - **Performance Optimized**: Built for high-performance environments
 
+### WooCommerce (Phase 4)
+- Product tools: create, update, bulkUpdate, search
+- Read-only endpoints: `/wp-json/ai-agent/v1/wc/products`, `/wc/orders`, `/wc/customers`
+- Security: HMAC/OAuth2/App Password middleware, capability checks
+- Admin: Tools and Policies subpages, expanded Settings (Woo toggle, OAuth2)
+- Feature flag: option `ai_agent_woocommerce_enabled` and filter `ai_agent_wc_enabled`
+
 ## 📋 Requirements
 
 - WordPress 6.0 or higher
@@ -58,6 +65,12 @@ The plugin provides REST API endpoints for external integrations:
 - **Documentation**: See `docs/api/openapi.yaml`
 
 ### Security Settings
+### WooCommerce Settings
+
+- Toggle: Settings → AI Agent → Integrations → WooCommerce
+- Or set via code: `update_option('ai_agent_woocommerce_enabled', true);`
+- Filter: `add_filter('ai_agent_wc_enabled', '__return_true');`
+- OAuth2: configure Client ID/Secret and endpoints in Settings
 
 Configure security policies in **AI Agent > Security**:
 

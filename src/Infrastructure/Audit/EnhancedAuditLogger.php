@@ -45,6 +45,10 @@ final class EnhancedAuditLogger
             'policy_verdict' => $policyContext['policy_verdict'] ?? null,
             'policy_reason' => $policyContext['policy_reason'] ?? null,
             'policy_details' => $policyContext['policy_details'] ?? null,
+            // Commerce-specific metadata if provided
+            'product_id' => $policyContext['product_id'] ?? ($data['id'] ?? null),
+            'sku' => $policyContext['sku'] ?? ($data['sku'] ?? null),
+            'price_change' => $policyContext['price_change'] ?? ($data['price_change'] ?? null),
             'error_code' => $policyContext['error_code'] ?? null,
             'error_category' => $policyContext['error_category'] ?? null,
             'ip_address' => $this->getClientIp(),

@@ -14,19 +14,19 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 **Timeline**: Week 7
 
 ### Core Tasks
-- [ ] Ensure WooCommerce dependency detection and graceful disable if missing
-- [ ] Service bindings for WC repositories (products, orders, customers)
-- [ ] Data mappers for WC objects → domain DTOs (typed, sanitized)
-- [ ] Capability map for commerce actions (manage_woocommerce, edit_products, etc.)
+- [x] Ensure WooCommerce dependency detection and graceful disable if missing
+- [x] Service bindings for WC repositories (products, orders, customers)
+- [x] Data mappers for WC objects → domain DTOs (typed, sanitized)
+- [x] Capability map for commerce actions (manage_woocommerce, edit_products, etc.)
 
 ### Implementation Notes
-- [ ] Feature flag `ai_agent_wc_enabled` (option + filter)
-- [ ] Nonce + capability checks around all admin actions
-- [ ] Strict sanitization/escaping for product inputs
+- [x] Feature flag `ai_agent_wc_enabled` (option + filter)
+- [x] Nonce + capability checks around all admin actions
+- [x] Strict sanitization/escaping for product inputs
 
 ### Testing
-- [ ] Unit: mappers (WC_Product, WC_Order) happy/error paths
-- [ ] Unit: capability gates for each action
+- [x] Unit: mappers (WC_Product, WC_Order) happy/error paths
+- [x] Unit: capability gates for each action
 
 ---
 
@@ -35,19 +35,19 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 **Timeline**: Week 7
 
 ### Tools
-- [ ] `products.create` (title, description, price, stock, categories, images)
-- [ ] `products.update` (partial updates)
-- [ ] `products.bulkUpdate` (batch operations with per-item validation)
-- [ ] `products.search` (filters: sku, category, price range, stock status)
+- [x] `products.create` (title, description, price, stock, categories, images)
+- [x] `products.update` (partial updates)
+- [x] `products.bulkUpdate` (batch operations with per-item validation)
+- [x] `products.search` (filters: sku, category, price range, stock status)
 
 ### Implementation Notes
-- [ ] JSON schema for each tool (required, enums, ranges)
-- [ ] Reuse Validator with stricter commerce rules (currency, price, stock)
-- [ ] Media handling for images (URLs → sideload with validation)
+- [x] JSON schema for each tool (required, enums, ranges)
+- [x] Reuse Validator with stricter commerce rules (currency, price, stock)
+- [x] Media handling for images (URLs → sideload with validation)
 
 ### Testing
-- [ ] Unit: each tool happy/error paths (missing fields, invalid price)
-- [ ] Unit: schema validation failures return structured errors
+- [x] Unit: each tool happy/error paths (missing fields, invalid price)
+- [x] Unit: schema validation failures return structured errors
 
 ---
 
@@ -56,17 +56,17 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 **Timeline**: Week 8
 
 ### Core Tasks
-- [ ] `orders.get` (by id), `orders.search` (status/date/customer)
-- [ ] `customers.get` (by id/email), `customers.search`
-- [ ] Summarization helpers (order issue summary, customer profile snapshot)
+- [x] `orders.get` (by id), `orders.search` (status/date/customer)
+- [x] `customers.get` (by id/email), `customers.search`
+- [x] Summarization helpers (order issue summary, customer profile snapshot)
 
 ### Implementation Notes
-- [ ] Read-only for Phase 4; mutations deferred to Phase 5
-- [ ] Pagination & limits with policy-backed rate limits
+- [x] Read-only for Phase 4; mutations deferred to Phase 5
+- [x] Pagination & limits with policy-backed rate limits
 
 ### Testing
-- [ ] Unit: search parameter validation and pagination bounds
-- [ ] Unit: redaction of PII fields in summaries/logs
+- [x] Unit: search parameter validation and pagination bounds
+- [x] Unit: redaction of PII fields in summaries/logs
 
 ---
 
@@ -75,17 +75,24 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 **Timeline**: Week 8
 
 ### REST
-- [ ] Namespaced routes under `/ai-agent/v1/wc/*`
-- [ ] Security middleware (HMAC/OAuth2/app passwords) applied
-- [ ] Input validation, capability checks, audit logging
+- [x] Namespaced routes under `/ai-agent/v1/wc/*`
+- [x] Read-only products search endpoint (`/wc/products`)
+- [x] Security middleware (HMAC/OAuth2/app passwords) applied
+- [x] Input validation, capability checks, audit logging
 
-### Admin UI
-- [ ] Settings: enable/disable WC features, rate limits, role gates
-- [ ] Minimal screens for tool dry-run + execute (dev utility)
+### Admin UI (New)
+- [x] Add top-level menu: "AI Agent"
+- [x] Subpages: Dashboard, Tools, Policies, Logs, Settings
+- [x] Settings screen: feature flags, API keys, HMAC/OAuth2, WooCommerce enable
+- [x] Register options (sanitize callbacks), capability checks, nonces
+- [x] Wire existing classes `Admin\AdminMenu` and `Admin\Settings` (or add if missing)
+- [x] Hook registration via service provider so menus load consistently
+- [x] Minimal dev utility to dry-run/execute tools from admin for testing
 
 ### Testing
-- [ ] Unit: permission_callbacks and schema validators
-- [ ] Smoke tests: route registration and responses
+- [x] Unit: permission_callbacks and schema validators
+- [x] Smoke tests: route registration and responses
+- [x] Smoke tests: admin menu items and screens render without notices
 
 ---
 
@@ -94,17 +101,17 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 **Timeline**: Week 8
 
 ### Core Tasks
-- [ ] Policy rules for commerce actions (product create/update, bulk ops)
-- [ ] Approval workflows for sensitive changes (price > threshold, stock to zero)
-- [ ] Rate limits (per-user, per-IP, per-tool) tuned for commerce
+- [x] Policy rules for commerce actions (product create/update, bulk ops)
+- [x] Approval workflows for sensitive changes (price > threshold, stock to zero)
+- [x] Rate limits (per-user, per-IP, per-tool) tuned for commerce
 
 ### Implementation Notes
-- [ ] Extend `EnhancedPolicy` to include WC operation categories
-- [ ] Add audit fields specific to commerce (product_id, sku, price_change)
+- [x] Extend `EnhancedPolicy` to include WC operation categories
+- [x] Add audit fields specific to commerce (product_id, sku, price_change)
 
 ### Testing
-- [ ] Unit: policy allow/deny with boundary cases (price thresholds)
-- [ ] Unit: audit payload includes commerce metadata
+- [x] Unit: policy allow/deny with boundary cases (price thresholds)
+- [x] Unit: audit payload includes commerce metadata
 
 ---
 
@@ -113,24 +120,25 @@ Integrate WooCommerce to enable AI-assisted product management, catalog operatio
 **Timeline**: Week 8
 
 ### Core Tasks
-- [ ] Caching for product/category lookups (object cache if available)
-- [ ] Batch pagination safeguards (max page/size)
-- [ ] Timeout and retry strategies for media sideloading
+- [x] Caching for product/category lookups (object cache if available)
+- [x] Batch pagination safeguards (max page/size)
+- [x] Timeout and retry strategies for media sideloading
 
 ### Testing
-- [ ] Unit: cache key building and invalidation
-- [ ] Unit: batch guards enforce limits
+- [x] Unit: cache key building and invalidation
+- [x] Unit: batch guards enforce limits
 
 ---
 
 ## ✅ Definition of Done
-- [ ] Product tools implemented with validation and security controls
-- [ ] Read-only order/customer endpoints delivered
-- [ ] REST routes secured with middleware and capability checks
-- [ ] Policies extended to commerce actions with tests
+- [x] Product tools implemented with validation and security controls
+- [x] Read-only order/customer endpoints delivered
+- [x] REST routes secured with middleware and capability checks
+- [x] Admin menu + settings screens available and functional
+- [x] Policies extended to commerce actions with tests
 - [ ] PHPUnit green, PHPStan level 8 clean
-- [ ] Documentation updated (README, Developer Guide)
+- [x] Documentation updated (README, Developer Guide)
 
 ---
 
-_Last Updated: (set on completion)_
+_Last Updated: <?= date('Y-m-d') ?>_

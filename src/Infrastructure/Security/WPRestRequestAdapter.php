@@ -7,27 +7,33 @@ namespace AIAgent\Infrastructure\Security;
  */
 final class WPRestRequestAdapter implements RequestInterface
 {
-    /** @var \WP_REST_Request */
+    /** @var object */
     private $request; // @phpstan-ignore-line
 
-    public function __construct(\WP_REST_Request $request)
+    /**
+     * @param object $request
+     */
+    public function __construct($request)
     {
         $this->request = $request;
     }
 
     public function get_header(string $name): string
     {
+        // @phpstan-ignore-next-line runtime method
         $value = $this->request->get_header($name);
         return $value !== null ? (string) $value : '';
     }
 
     public function get_body(): string
     {
+        // @phpstan-ignore-next-line runtime method
         return (string) $this->request->get_body();
     }
 
     public function get_route(): string
     {
+        // @phpstan-ignore-next-line runtime method
         return (string) $this->request->get_route();
     }
 }

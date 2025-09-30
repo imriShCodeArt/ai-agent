@@ -21,7 +21,7 @@ class EnhanceAuditLogTable implements MigrationInterface
 
     public function getDescription(): string
     {
-        return 'Enhance audit log table with policy versioning and error taxonomy';
+        return 'Enhance audit log table with policy versioning, error taxonomy, and commerce fields';
     }
 
     public function up(): void
@@ -49,6 +49,9 @@ class EnhanceAuditLogTable implements MigrationInterface
                 policy_verdict varchar(20) DEFAULT NULL,
                 policy_reason varchar(100) DEFAULT NULL,
                 policy_details text DEFAULT NULL,
+                product_id bigint(20) DEFAULT NULL,
+                sku varchar(200) DEFAULT NULL,
+                price_change decimal(20,6) DEFAULT NULL,
                 error_code varchar(50) DEFAULT NULL,
                 error_category varchar(50) DEFAULT NULL,
                 ip_address varchar(45) DEFAULT NULL,
@@ -61,6 +64,8 @@ class EnhanceAuditLogTable implements MigrationInterface
                 KEY entity_id (entity_id),
                 KEY status (status),
                 KEY policy_version (policy_version),
+                KEY product_id (product_id),
+                KEY sku (sku),
                 KEY error_category (error_category),
                 KEY created_at (created_at),
                 KEY ip_address (ip_address)
@@ -77,6 +82,9 @@ class EnhanceAuditLogTable implements MigrationInterface
                 'policy_verdict' => 'varchar(20) DEFAULT NULL',
                 'policy_reason' => 'varchar(100) DEFAULT NULL',
                 'policy_details' => 'text DEFAULT NULL',
+                'product_id' => 'bigint(20) DEFAULT NULL',
+                'sku' => 'varchar(200) DEFAULT NULL',
+                'price_change' => 'decimal(20,6) DEFAULT NULL',
                 'error_code' => 'varchar(50) DEFAULT NULL',
                 'error_category' => 'varchar(50) DEFAULT NULL',
                 'ip_address' => 'varchar(45) DEFAULT NULL',
@@ -95,6 +103,8 @@ class EnhanceAuditLogTable implements MigrationInterface
             // Add new indexes
             $indexes_to_add = [
                 'policy_version' => 'policy_version',
+                'product_id' => 'product_id',
+                'sku' => 'sku',
                 'error_category' => 'error_category',
                 'ip_address' => 'ip_address',
             ];

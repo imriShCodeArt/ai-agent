@@ -29,6 +29,7 @@ final class Validator
             if ($type === 'string' && !is_string($input[$name])) { return false; }
             if ($type === 'integer' && !is_int($input[$name])) { return false; }
             if ($type === 'object' && !is_array($input[$name])) { return false; }
+            if ($type === 'number' && !is_numeric($input[$name])) { return false; }
 
             // minLength for strings
             if ($type === 'string' && isset($rules['minLength']) && is_int($rules['minLength'])) {
@@ -38,6 +39,12 @@ final class Validator
             // enum constraint
             if (isset($rules['enum']) && is_array($rules['enum'])) {
                 if (!in_array($input[$name], $rules['enum'], true)) { return false; }
+            }
+
+            // minimum for numbers
+            if ($type === 'number' && isset($rules['minimum'])) {
+                if (!is_numeric($rules['minimum'])) { return false; }
+                if ((float) $input[$name] < (float) $rules['minimum']) { return false; }
             }
         }
         return true;

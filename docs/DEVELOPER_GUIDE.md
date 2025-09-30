@@ -1,3 +1,35 @@
+# Developer Guide (Phase 4 Addendum)
+
+## WooCommerce Integration
+
+### Feature Flag
+- Option: `ai_agent_woocommerce_enabled`
+- Filter: `ai_agent_wc_enabled` (bool)
+
+### Tools
+- `products.create`, `products.update`, `products.bulkUpdate`, `products.search`
+- JSON schemas enforced via `Validator::validate`
+
+### REST Endpoints
+- `/wp-json/ai-agent/v1/wc/products` (GET)
+- `/wp-json/ai-agent/v1/wc/orders` (GET)
+- `/wp-json/ai-agent/v1/wc/customers` (GET)
+- Permission callbacks authenticate via security middleware and then check capabilities
+
+### Security
+- Middleware supports HMAC, OAuth2, Application Passwords, or logged-in WP
+- Capabilities checked: `manage_woocommerce` or `manage_options`
+
+### Admin UI
+- `Admin\AdminMenu`: adds Tools and Policies subpages
+- `Admin\Settings`: WooCommerce toggle and OAuth2 fields
+
+### Mappers
+- `AIAgent\Infrastructure\WC\Mappers` provide DTO mapping for products, orders, customers
+
+### Notes for Static Analysis
+- When WooCommerce classes are unavailable, PHPStan ignores are applied near dynamic calls
+
 # AI Agent Plugin - Developer Guide
 
 ## Table of Contents
