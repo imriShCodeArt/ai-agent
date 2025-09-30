@@ -241,7 +241,8 @@ final class Settings
                     <td>
                         <?php
                         $user = get_user_by('login', 'ai_agent_svc');
-                        echo $user ? '✅ Created (ID: ' . $user->ID . ')' : '❌ Not found';
+                        // @phpstan-ignore-next-line WP_User available at runtime in WP
+                        echo $user ? '✅ Created (ID: ' . (int) $user->ID . ')' : '❌ Not found';
                         ?>
                     </td>
                 </tr>

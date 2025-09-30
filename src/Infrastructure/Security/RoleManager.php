@@ -64,7 +64,8 @@ final class RoleManager
     public function getRoleCapabilities(): array
     {
         $role = get_role(self::ROLE_NAME);
-        return $role ? $role->capabilities : [];
+        // @phpstan-ignore-next-line WordPress runtime class WP_Role has capabilities
+        return $role ? (array) $role->capabilities : [];
     }
 
     public function createServiceUser(): int
@@ -98,7 +99,8 @@ final class RoleManager
     public function getServiceUserId(): ?int
     {
         $user = get_user_by('login', 'ai_agent_svc');
-        return $user ? $user->ID : null;
+        // @phpstan-ignore-next-line WP_User available at runtime in WP
+        return $user ? (int) $user->ID : null;
     }
 
     public function ensureServiceUser(): int
