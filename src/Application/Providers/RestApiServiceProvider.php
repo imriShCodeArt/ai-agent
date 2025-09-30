@@ -29,6 +29,9 @@ use AIAgent\Infrastructure\Tools\WCProductsCreateTool;
 use AIAgent\Infrastructure\Tools\WCProductsUpdateTool;
 use AIAgent\Infrastructure\Tools\WCProductsBulkUpdateTool;
 use AIAgent\Infrastructure\Tools\WCProductsSearchTool;
+use AIAgent\Infrastructure\WC\Repositories\ProductRepository;
+use AIAgent\Infrastructure\WC\Repositories\OrderRepository;
+use AIAgent\Infrastructure\WC\Repositories\CustomerRepository;
 
 final class RestApiServiceProvider extends AbstractServiceProvider implements HookableInterface
 {
@@ -82,6 +85,11 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 				$this->container->get(OAuth2Provider::class)
 			);
 		});
+
+		// WooCommerce repositories
+		$this->container->singleton(ProductRepository::class, function () { return new ProductRepository(); });
+		$this->container->singleton(OrderRepository::class, function () { return new OrderRepository(); });
+		$this->container->singleton(CustomerRepository::class, function () { return new CustomerRepository(); });
 
 		$this->container->singleton(ChatController::class, function () {
 			return new ChatController(

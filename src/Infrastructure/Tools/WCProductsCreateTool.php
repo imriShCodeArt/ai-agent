@@ -59,10 +59,16 @@ final class WCProductsCreateTool implements ToolInterface
 		// Optional media sideloading for images
 		$attachmentIds = [];
 		if (!empty($input['images']) && is_array($input['images'])) {
+			$attempts = 0;
 			foreach ($input['images'] as $url) {
 				$url = filter_var((string) $url, FILTER_VALIDATE_URL) ? (string) $url : '';
 				if ($url === '') { continue; }
-				$attachmentId = $this->sideloadImage($url, $title);
+				$attachmentId = 0;
+				$attempts = 0;
+				while ($attempts < 2 && $attachmentId === 0) {
+					$attempts++;
+					$attachmentId = $this->sideloadImage($url, $title);
+				}
 				if ($attachmentId) { $attachmentIds[] = $attachmentId; }
 			}
 		}
