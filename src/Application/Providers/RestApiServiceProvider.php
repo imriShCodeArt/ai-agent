@@ -28,6 +28,7 @@ use AIAgent\Infrastructure\Tools\PostsUpdateTool;
 use AIAgent\Infrastructure\Tools\WCProductsCreateTool;
 use AIAgent\Infrastructure\Tools\WCProductsUpdateTool;
 use AIAgent\Infrastructure\Tools\WCProductsBulkUpdateTool;
+use AIAgent\Infrastructure\Tools\WCProductsSearchTool;
 
 final class RestApiServiceProvider extends AbstractServiceProvider implements HookableInterface
 {
@@ -126,6 +127,7 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 				$registry->register(new WCProductsCreateTool());
 				$registry->register(new WCProductsUpdateTool());
 				$registry->register(new WCProductsBulkUpdateTool());
+				$registry->register(new WCProductsSearchTool());
 			}
 			return $registry;
 		});
