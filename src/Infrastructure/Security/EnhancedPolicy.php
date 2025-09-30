@@ -80,6 +80,11 @@ final class EnhancedPolicy
         return $this->policies[$tool] ?? null;
     }
 
+    public function getAllPolicies(): array
+    {
+        return $this->policies;
+    }
+
     public function loadPolicies(): void
     {
         // Load from database or default policies
@@ -110,7 +115,7 @@ final class EnhancedPolicy
                 'version' => $this->generateVersionNumber($tool),
                 'tool_name' => $tool,
                 'policy_doc' => wp_json_encode($policy),
-                'created_by' => $userId ?: get_current_user_id(),
+                'created_by' => $userId ?: (function_exists('get_current_user_id') ? get_current_user_id() : 0),
             ],
             ['%s', '%s', '%s', '%d']
         );

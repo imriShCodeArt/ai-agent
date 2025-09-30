@@ -187,6 +187,10 @@ final class EnhancedPolicyTest extends TestCase
 
     public function testDefaultPoliciesExist(): void
     {
+        // Debug: Check what policies are actually loaded
+        $allPolicies = $this->policy->getAllPolicies();
+        $this->assertIsArray($allPolicies);
+        
         $postsCreatePolicy = $this->policy->getPolicyForTool('postscreate');
         $postsUpdatePolicy = $this->policy->getPolicyForTool('postsupdate');
         

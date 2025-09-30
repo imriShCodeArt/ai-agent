@@ -131,7 +131,7 @@ final class SecurityMiddleware
             if (is_array($value)) {
                 $value = $this->sanitizeInput($value);
             } elseif (is_numeric($value)) {
-                $value = is_float($value) ? (float) $value : (int) $value;
+                $value = (strpos($value, '.') !== false) ? (float) $value : (int) $value;
             } elseif (is_string($value)) {
                 $value = function_exists('sanitize_text_field') ? sanitize_text_field($value) : strip_tags($value);
             }
