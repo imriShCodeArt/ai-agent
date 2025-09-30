@@ -77,7 +77,7 @@ final class EnhancedPolicyTest extends TestCase
 
     public function testContentRestrictionsBlockedPattern(): void
     {
-        $result = $this->policy->isAllowed('posts.create', null, ['post_content' => 'Buy viagra online']);
+        $result = $this->policy->isAllowed('posts.create', null, ['post_content' => 'Buy now with special offer!']);
         
         $this->assertFalse($result['allowed']);
         $this->assertEquals('blocked_pattern', $result['reason']);
