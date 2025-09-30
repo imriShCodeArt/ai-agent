@@ -115,4 +115,72 @@ final class WooCommerceController extends BaseRestController
 			],
 		]);
 	}
+
+	/**
+	 * GET /ai-agent/v1/wc/orders
+	 */
+	public function ordersSearch($request)
+	{
+		if (!class_exists('WC_Order_Query')) {
+			return new \WP_Error('wc_missing', 'WooCommerce is not installed/active');
+		}
+		$args = [
+			'limit' => min((int) ($request->get_param('per_page') ?? 20), 50),
+			'page' => max(1, (int) ($request->get_param('page') ?? 1)),
+			'orderby' => 'date',
+			'order' => 'DESC',
+		];
+		if ($status = $request->get_param('status')) { $args['status'] = array_map('sanitize_text_field', (array) $status); }
+		if ($customer = $request->get_param('customer_id')) { $args['customer'] = (int) $customer; }
+		$query = new \WC_Order_Query($args);
+		$orders = $query->get_orders();
+		$items = [];
+		foreach ($orders as $order) {
+			$items[] = [
+				'id' => $order->get_id(),
+				'number' => $order->get_order_number(),
+				'customer_id' => $order->get_user_id(),
+				'total' => $order->get_total(),
+				'currency' => $order->get_currency(),
+				'created_at' => $order->get_date_created() ? $order->get_date_created()->date('c') : null,
+				'payment_method' => $order->get_payment_method(),
+				'status' => $order->get_status(),
+			];
+		}
+		return new \WP_REST_Response(['items' => $items, 'page' => $args['page'], 'per_page' => $args['limit']]);
+	}
+
+	/**
+	 * GET /ai-agent/v1/wc/customers
+	 */
+	public function customersSearch($request)
+	{
+		if (!class_exists('WC_Customer')) {
+			return new \WP_Error('wc_missing', 'WooCommerce is not installed/active');
+		}
+		$role = 'customer';
+		$args = [
+			'role' => $role,
+			'number' => min((int) ($request->get_param('per_page') ?? 20), 50),
+			'paged' => max(1, (int) ($request->get_param('page') ?? 1)),
+			'orderby' => 'ID',
+			'order' => 'DESC',
+			'search' => !empty($request->get_param('q')) ? '*' . esc_attr($request->get_param('q')) . '*' : '',
+			'search_columns' => ['user_login', 'user_email', 'display_name'],
+		];
+		$userQuery = new \WP_User_Query($args);
+		$items = [];
+		foreach ($userQuery->get_results() as $user) {
+			$customer = new \WC_Customer($user->ID);
+			$items[] = [
+				'id' => $customer->get_id(),
+				'email' => $customer->get_email(),
+				'first_name' => $customer->get_first_name(),
+				'last_name' => $customer->get_last_name(),
+				'orders_count' => $customer->get_order_count(),
+				'total_spent' => $customer->get_total_spent(),
+			];
+		}
+		return new \WP_REST_Response(['items' => $items, 'page' => $args['paged'], 'per_page' => $args['number']]);
+	}
 }

@@ -246,6 +246,33 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 				'per_page' => ['required' => false, 'type' => 'integer'],
 			],
 		]);
+
+		register_rest_route('ai-agent/v1', '/wc/orders', [
+			'methods' => 'GET',
+			'callback' => [$wcController, 'ordersSearch'],
+			'permission_callback' => function () {
+				return current_user_can('manage_woocommerce') || current_user_can('manage_options');
+			},
+			'args' => [
+				'status' => ['required' => false],
+				'customer_id' => ['required' => false, 'type' => 'integer'],
+				'page' => ['required' => false, 'type' => 'integer'],
+				'per_page' => ['required' => false, 'type' => 'integer'],
+			],
+		]);
+
+		register_rest_route('ai-agent/v1', '/wc/customers', [
+			'methods' => 'GET',
+			'callback' => [$wcController, 'customersSearch'],
+			'permission_callback' => function () {
+				return current_user_can('manage_woocommerce') || current_user_can('manage_options');
+			},
+			'args' => [
+				'q' => ['required' => false, 'type' => 'string'],
+				'page' => ['required' => false, 'type' => 'integer'],
+				'per_page' => ['required' => false, 'type' => 'integer'],
+			],
+		]);
 	}
 
 	public function checkChatPermissions(): bool
