@@ -181,15 +181,14 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 		$chatController = $this->container->get(ChatController::class);
 		$postsController = $this->container->get(PostsController::class);
 		$logsController = $this->container->get(LogsController::class);
+		/** @var PolicyController $policyController */
 		$policyController = $this->container->get(PolicyController::class);
 		$reviewController = $this->container->get(ReviewController::class);
 		$wcController = $this->container->get(WooCommerceController::class);
 		$security = $this->container->get(SecurityMiddleware::class);
 
 		// Register policy routes (Phase 5)
-		if (method_exists($policyController, 'register_routes')) {
-			$policyController->register_routes();
-		}
+		$policyController->register_routes();
 
 		// Chat endpoints
 		register_rest_route('ai-agent/v1', '/chat', [
