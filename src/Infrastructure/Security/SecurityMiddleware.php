@@ -19,7 +19,7 @@ final class SecurityMiddleware
         $this->oauth2Provider = $oauth2Provider;
     }
 
-    public function authenticateRequest(\WP_REST_Request $request): array
+    public function authenticateRequest(RequestInterface $request): array
     {
         $authResult = [
             'authenticated' => false,
@@ -181,7 +181,7 @@ final class SecurityMiddleware
         return ['authenticated' => false];
     }
 
-    private function authenticateOAuth2(\WP_REST_Request $request): array
+    private function authenticateOAuth2(RequestInterface $request): array
     {
         $authHeader = $request->get_header('authorization');
         
@@ -211,7 +211,7 @@ final class SecurityMiddleware
         return ['authenticated' => false];
     }
 
-    private function authenticateApplicationPassword(\WP_REST_Request $request): array
+    private function authenticateApplicationPassword(RequestInterface $request): array
     {
         $authHeader = $request->get_header('authorization');
         
@@ -252,7 +252,7 @@ final class SecurityMiddleware
         return ['authenticated' => false];
     }
 
-    private function authenticateWordPress(\WP_REST_Request $request): array
+    private function authenticateWordPress(RequestInterface $request): array
     {
         if (!is_user_logged_in()) {
             return ['authenticated' => false];
