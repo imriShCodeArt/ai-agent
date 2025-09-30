@@ -15,18 +15,7 @@ final class EnhancedPolicyCommerceTest extends TestCase
         $this->assertIsArray($result);
         $this->assertFalse($result['allowed']);
     }
-}
 
-<?php
-
-namespace AIAgent\Tests\Unit\Infrastructure\Security;
-
-use AIAgent\Infrastructure\Security\EnhancedPolicy;
-use AIAgent\Support\Logger;
-use PHPUnit\Framework\TestCase;
-
-final class EnhancedPolicyCommerceTest extends TestCase
-{
     public function testPriceThresholdTriggersApproval(): void
     {
         $policy = new EnhancedPolicy(new Logger());
@@ -38,5 +27,4 @@ final class EnhancedPolicyCommerceTest extends TestCase
         $this->assertSame('approval_required', $result['reason']);
     }
 }
-
 
