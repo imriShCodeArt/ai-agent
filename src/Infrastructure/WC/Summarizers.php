@@ -31,9 +31,9 @@ final class Summarizers
         // @phpstan-ignore-next-line
         $name = trim((string) $customer->get_first_name() . ' ' . (string) $customer->get_last_name());
         // @phpstan-ignore-next-line
-        $orders = (int) $customer->get_order_count();
+        $orders = method_exists($customer, 'get_order_count') ? (int) $customer->get_order_count() : 0;
         // @phpstan-ignore-next-line
-        $spent = (float) $customer->get_total_spent();
+        $spent = method_exists($customer, 'get_total_spent') ? (float) $customer->get_total_spent() : 0.0;
         return 'Customer: ' . ($name !== '' ? $name : 'N/A') . '; Orders: ' . $orders . '; Spent: ' . number_format($spent, 2);
     }
 }
