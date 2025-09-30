@@ -77,7 +77,12 @@ final class EnhancedPolicy
 
     public function getPolicyForTool(string $tool): ?array
     {
-        return $this->policies[$tool] ?? null;
+        if (isset($this->policies[$tool])) {
+            return $this->policies[$tool];
+        }
+        // Backward-compat: support legacy keys without dots (e.g., 'postscreate')
+        $legacyKey = str_replace('.', '', $tool);
+        return $this->policies[$legacyKey] ?? null;
     }
 
     public function getAllPolicies(): array
@@ -319,6 +324,9 @@ final class EnhancedPolicy
         
         // Check allowed post types
         if (isset($rules['allowed_post_types']) && $entityId) {
+            if (!function_exists('get_post_type')) {
+                return ['allowed' => true, 'reason' => 'no_entity_rules_env', 'details' => 'WP not available'];
+            }
             $postType = get_post_type($entityId);
             if ($postType && !in_array($postType, $rules['allowed_post_types'], true)) {
                 return [
@@ -331,6 +339,9 @@ final class EnhancedPolicy
 
         // Check allowed statuses
         if (isset($rules['allowed_statuses']) && $entityId) {
+            if (!function_exists('get_post_status')) {
+                return ['allowed' => true, 'reason' => 'no_entity_rules_env', 'details' => 'WP not available'];
+            }
             $status = get_post_status($entityId);
             if ($status && !in_array($status, $rules['allowed_statuses'], true)) {
                 return [
