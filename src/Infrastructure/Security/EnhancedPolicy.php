@@ -18,7 +18,7 @@ final class EnhancedPolicy
         $this->loadPolicies();
     }
 
-    public function isAllowed(string $tool, ?int $entityId = null, array $fields = []): array
+    public function isAllowed(string $tool, ?int $entityId = null, array $fields = [], string $mode = 'suggest'): array
     {
         // Input validation and sanitization
         $tool = $this->sanitizeToolName($tool);
@@ -70,6 +70,24 @@ final class EnhancedPolicy
         if (!$approvalResult['allowed']) {
             $this->logger->info('Approval workflow required', ['tool' => $tool, 'details' => $approvalResult['details']]);
             return $approvalResult;
+        }
+
+        // In Review mode, always require approval for non-admin users
+        if ($mode === 'review') {
+            $userId = function_exists('get_current_user_id') ? get_current_user_id() : 0;
+            if (!function_exists('current_user_can') || !current_user_can('manage_options')) {
+                // Check if this action has already been approved
+                $approvalKey = "review_approval:{$tool}:{$entityId}:{$userId}";
+                $hasApproval = $this->getApprovalStatus($approvalKey);
+                
+                if (!$hasApproval) {
+                    return [
+                        'allowed' => false,
+                        'reason' => 'review_mode_approval_required',
+                        'details' => 'Review mode requires approval for all actions. Please contact an administrator.'
+                    ];
+                }
+            }
         }
 
         return ['allowed' => true, 'reason' => 'approved', 'details' => 'All policy checks passed'];

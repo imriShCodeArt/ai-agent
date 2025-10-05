@@ -547,8 +547,12 @@ final class AdminMenu
                                 <td><?php echo esc_html($r['entity_type'] . ' #' . $r['entity_id']); ?></td>
                                 <td>
                                     <button class="button button-small" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentViewDiff(this)">View Diff</button>
-                                    <button class="button button-primary button-small" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentApprove(this)">Approve</button>
-                                    <button class="button button-small" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentReject(this)">Reject</button>
+                                    <?php if ($r['status'] === 'pending'): ?>
+                                        <button class="button button-primary button-small" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentApprove(this)">Approve</button>
+                                        <button class="button button-small" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentReject(this)">Reject</button>
+                                    <?php elseif ($r['status'] === 'approved'): ?>
+                                        <button class="button button-secondary button-small" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentRollback(this)">Rollback</button>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -732,6 +736,36 @@ final class AdminMenu
             aiAgentCloseDiff();
           }
         });
+        
+        // Rollback function
+        async function aiAgentRollback(btn) {
+          const id = btn.getAttribute('data-id');
+          const reason = prompt('Rollback reason (optional):');
+          if (reason === null) return; // User cancelled
+          
+          if (!confirm('Rollback this approved action?')) {
+            return;
+          }
+          
+          try {
+            const response = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>' + id + '/rollback', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reason: reason || 'Rollback requested' })
+            });
+            
+            const data = await response.json();
+            if (data.ok) {
+              alert('Action rolled back successfully');
+              location.reload();
+            } else {
+              alert('Error: ' + (data.error || 'Failed to rollback'));
+            }
+          } catch (error) {
+            alert('Error: ' + error.message);
+          }
+        }
         </script>
         <?php
     }

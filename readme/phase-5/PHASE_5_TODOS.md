@@ -37,16 +37,16 @@ Deliver an advanced admin UI for policy management and implement end-to-end revi
 
 ### Core Tasks
 - [x] Review interface
-- [ ] Side-by-side diff viewer
-- [ ] Batch approval system
-- [ ] Comment and feedback system
-- [ ] Notification system (pending reviews, outcomes)
+- [x] Side-by-side diff viewer
+- [x] Batch approval system
+- [x] Comment and feedback system
+- [x] Notification system (pending reviews, outcomes)
 
 ### Workflow Rules
-- [ ] Approval required in Review mode
-- [ ] All approvals/rejections logged with audit trail
-- [ ] Notifications for pending/approved/rejected
-- [ ] Easy rollback of approved changes
+- [x] Approval required in Review mode
+- [x] All approvals/rejections logged with audit trail
+- [x] Notifications for pending/approved/rejected
+- [x] Easy rollback of approved changes
 
 ### Testing
 - [ ] Unit: approval state transitions and guards

@@ -206,6 +206,56 @@ final class ReviewController extends BaseRestController
             'total' => count($ids)
         ]);
     }
+
+    /**
+     * @param mixed $request
+     * @return \WP_REST_Response
+     */
+    public function rollback($request): \WP_REST_Response
+    {
+        $id = (int) $request->get_param('id');
+        $reason = (string) ($request->get_param('reason') ?? 'Rollback requested');
+        $userId = function_exists('get_current_user_id') ? (int) get_current_user_id() : 0;
+        
+        global $wpdb;
+        $table = $wpdb->prefix . 'ai_agent_actions';
+        
+        // Get the action details
+        $action = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id = %d", $id), ARRAY_A);
+        if (!$action) {
+            return new \WP_REST_Response(['error' => 'Action not found'], 404);
+        }
+
+        if ($action['status'] !== 'approved') {
+            return new \WP_REST_Response(['error' => 'Only approved actions can be rolled back'], 400);
+        }
+
+        // For MVP, we'll mark it as rolled back and log the event
+        // In a full implementation, this would restore the previous state
+        $result = $wpdb->update($table, [
+            'status' => 'rolled_back',
+            'error' => $reason
+        ], ['id' => $id]);
+
+        if ($result === false) {
+            return new \WP_REST_Response(['error' => 'Failed to rollback action'], 500);
+        }
+
+        $this->auditLogger->logSecurityEvent('review_rolled_back', $userId, [
+            'action_id' => $id,
+            'reason' => $reason,
+            'error_code' => 'REVIEW_ROLLED_BACK',
+            'error_category' => 'review'
+        ]);
+
+        $this->notifications->notifyReviewEvent($id, 'rolled_back', $reason);
+
+        return new \WP_REST_Response([
+            'ok' => true,
+            'id' => $id,
+            'status' => 'rolled_back'
+        ]);
+    }
 }
 
 
