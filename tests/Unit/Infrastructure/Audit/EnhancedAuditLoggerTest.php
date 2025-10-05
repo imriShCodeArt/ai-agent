@@ -20,11 +20,13 @@ final class EnhancedAuditLoggerTest extends TestCase
             public array $last = [];
             public function __construct(&$_c) {}
             public function insert($table, $data) { $this->last = $data; return 1; }
+            public function update($table, $data, $where = []) { $this->last = $data; return 1; }
             public function get_charset_collate() { return ''; }
             public function get_var($q) { return null; }
             public function query($q) { return true; }
             public function prepare($q) { return $q; }
             public function get_results($q) { return []; }
+            public function get_row($q, $type = ARRAY_A) { return null; }
             public function __get($k) { return null; }
         };
 
