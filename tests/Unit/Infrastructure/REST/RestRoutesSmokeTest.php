@@ -1,0 +1,31 @@
+<?php
+
+namespace AIAgent\Tests\Unit\Infrastructure\REST;
+
+use PHPUnit\Framework\TestCase;
+use AIAgent\Application\Providers\RestApiServiceProvider;
+use AIAgent\Infrastructure\ServiceContainer;
+use AIAgent\Support\Logger;
+
+final class RestRoutesSmokeTest extends TestCase
+{
+    public function testServiceProviderRegistersRoutes(): void
+    {
+        $container = new ServiceContainer();
+        $container->singleton(Logger::class, fn() => new Logger());
+        $hooks = new \AIAgent\Infrastructure\Hooks\HooksLoader();
+        $provider = new RestApiServiceProvider($container, $hooks, __FILE__);
+        // Minimal required bindings for register() to succeed
+        $container->singleton(\AIAgent\Support\Logger::class, fn() => new \AIAgent\Support\Logger());
+        $container->singleton(\AIAgent\Infrastructure\Security\Capabilities::class, fn() => new \AIAgent\Infrastructure\Security\Capabilities());
+        $container->singleton(\AIAgent\REST\Controllers\PolicyController::class, function() use ($container) {
+            return new \AIAgent\REST\Controllers\PolicyController($container->get(\AIAgent\Support\Logger::class));
+        });
+        $provider->register();
+        $this->assertTrue(is_callable([$provider, 'registerRestRoutes']));
+        // Invoke to ensure no fatal due to permission_callback wiring
+        $provider->registerRestRoutes();
+    }
+}
+
+

@@ -4,7 +4,6 @@ namespace AIAgent\REST\Controllers;
 
 use AIAgent\Infrastructure\Audit\AuditLogger;
 use AIAgent\Support\Logger;
-use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
 
@@ -19,7 +18,10 @@ final class LogsController extends BaseRestController
         $this->logger = $logger;
     }
 
-    public function getLogs(WP_REST_Request $request): WP_REST_Response|WP_Error
+    /**
+     * @param mixed $request
+     */
+    public function getLogs($request): WP_REST_Response|WP_Error
     {
         $userId = get_current_user_id();
         if (!$userId) {
@@ -94,7 +96,10 @@ final class LogsController extends BaseRestController
         }
     }
 
-    public function getLogById(WP_REST_Request $request): WP_REST_Response|WP_Error
+    /**
+     * @param mixed $request
+     */
+    public function getLogById($request): WP_REST_Response|WP_Error
     {
         $id = (int) $request->get_param('id');
 
@@ -163,7 +168,10 @@ final class LogsController extends BaseRestController
         }
     }
 
-    public function getDiff(WP_REST_Request $request): WP_REST_Response|WP_Error
+    /**
+     * @param mixed $request
+     */
+    public function getDiff($request): WP_REST_Response|WP_Error
     {
         $id = (int) $request->get_param('id');
 

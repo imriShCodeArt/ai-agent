@@ -119,7 +119,10 @@ final class PolicyController extends BaseRestController
         ]);
     }
 
-    public function get_policies(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function get_policies($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -148,7 +151,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function get_policy(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function get_policy($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -174,7 +180,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function create_policy(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function create_policy($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -204,7 +213,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function update_policy(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function update_policy($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -234,7 +246,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function delete_policy(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function delete_policy($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -262,7 +277,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function get_policy_versions(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function get_policy_versions($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -278,7 +296,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function get_policy_diff(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function get_policy_diff($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -302,7 +323,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function rollback_policy(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function rollback_policy($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -334,7 +358,10 @@ final class PolicyController extends BaseRestController
         }
     }
 
-    public function test_policy(\WP_REST_Request $request): \WP_REST_Response
+    /**
+     * @param mixed $request
+     */
+    public function test_policy($request): \WP_REST_Response
     {
         try {
             $tool = $request->get_param('tool');
@@ -395,13 +422,33 @@ final class PolicyController extends BaseRestController
         return true;
     }
 
-    public function check_policy_read_permission(): bool
+    public function check_policy_read_permission(mixed $request): bool
     {
+        // Verify nonce for security
+        if (!$this->verify_nonce($request)) {
+            return false;
+        }
+        
         return current_user_can('manage_options') || current_user_can('ai_agent_read_policies');
     }
 
-    public function check_policy_write_permission(): bool
+    public function check_policy_write_permission(mixed $request): bool
     {
+        // Verify nonce for security
+        if (!$this->verify_nonce($request)) {
+            return false;
+        }
+        
         return current_user_can('manage_options') || current_user_can('ai_agent_manage_policies');
+    }
+
+    private function verify_nonce(mixed $request): bool
+    {
+        $nonce = $request->get_header('X-WP-Nonce');
+        if (!$nonce) {
+            $nonce = $request->get_param('_wpnonce');
+        }
+        
+        return wp_verify_nonce($nonce, 'wp_rest');
     }
 }

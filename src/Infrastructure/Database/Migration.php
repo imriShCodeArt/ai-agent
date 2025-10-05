@@ -2,7 +2,7 @@
 
 namespace AIAgent\Infrastructure\Database;
 
-final class Migration
+final class Migration implements MigrationInterface
 {
     private string $version;
     private string $description;
