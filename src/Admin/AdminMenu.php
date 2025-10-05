@@ -505,33 +505,67 @@ final class AdminMenu
             <?php if (empty($rows)): ?>
                 <p>No pending reviews.</p>
             <?php else: ?>
-                <table class="wp-list-table widefat fixed striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Time</th>
-                            <th>User</th>
-                            <th>Tool</th>
-                            <th>Entity</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($rows as $r): ?>
-                        <tr>
-                            <td><?php echo esc_html($r['id']); ?></td>
-                            <td><?php echo esc_html($r['ts']); ?></td>
-                            <td><?php echo esc_html(get_user_by('id', $r['user_id'])->display_name ?? 'Unknown'); ?></td>
-                            <td><?php echo esc_html($r['tool']); ?></td>
-                            <td><?php echo esc_html($r['entity_type'] . ' #' . $r['entity_id']); ?></td>
-                            <td>
-                                <button class="button button-primary" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentApprove(this)">Approve</button>
-                                <button class="button" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentReject(this)">Reject</button>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                <div class="ai-agent-reviews-container">
+                    <div class="ai-agent-batch-controls" style="margin-bottom: 20px; padding: 10px; background: #f1f1f1; border-radius: 4px;">
+                        <label>
+                            <input type="checkbox" id="select-all-reviews" onchange="aiAgentToggleAll(this)">
+                            Select All
+                        </label>
+                        <button class="button button-primary" onclick="aiAgentBatchApprove()" disabled id="batch-approve-btn">
+                            Approve Selected
+                        </button>
+                        <button class="button" onclick="aiAgentBatchReject()" disabled id="batch-reject-btn">
+                            Reject Selected
+                        </button>
+                        <span id="selected-count" style="margin-left: 10px; color: #666;">0 selected</span>
+                    </div>
+                    
+                    <table class="wp-list-table widefat fixed striped">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;">
+                                    <input type="checkbox" id="select-all-header" onchange="aiAgentToggleAll(this)">
+                                </th>
+                                <th>ID</th>
+                                <th>Time</th>
+                                <th>User</th>
+                                <th>Tool</th>
+                                <th>Entity</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($rows as $r): ?>
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="review-checkbox" value="<?php echo esc_attr((string) $r['id']); ?>" onchange="aiAgentUpdateSelection()">
+                                </td>
+                                <td><?php echo esc_html($r['id']); ?></td>
+                                <td><?php echo esc_html($r['ts']); ?></td>
+                                <td><?php echo esc_html(get_user_by('id', $r['user_id'])->display_name ?? 'Unknown'); ?></td>
+                                <td><?php echo esc_html($r['tool']); ?></td>
+                                <td><?php echo esc_html($r['entity_type'] . ' #' . $r['entity_id']); ?></td>
+                                <td>
+                                    <button class="button button-small" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentViewDiff(this)">View Diff</button>
+                                    <button class="button button-primary button-small" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentApprove(this)">Approve</button>
+                                    <button class="button button-small" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentReject(this)">Reject</button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Diff Viewer Modal -->
+                <div id="diff-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; height: 80%; border-radius: 4px; overflow: hidden;">
+                        <div style="padding: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 id="diff-title">Review Diff</h3>
+                            <button onclick="aiAgentCloseDiff()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                        </div>
+                        <div id="diff-content" style="padding: 15px; height: calc(100% - 60px); overflow: auto; font-family: monospace; white-space: pre-wrap;"></div>
+                    </div>
+                </div>
             <?php endif; ?>
         </div>
         <script>
@@ -542,9 +576,162 @@ final class AdminMenu
         }
         async function aiAgentReject(btn){
           const id = btn.getAttribute('data-id');
-          await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>'+id+'/reject', { method: 'POST', credentials: 'include' });
+          const reason = prompt('Rejection reason (optional):');
+          await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>'+id+'/reject', { 
+            method: 'POST', 
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: reason || '' })
+          });
           location.reload();
         }
+        
+        // Diff viewer functions
+        async function aiAgentViewDiff(btn) {
+          const id = btn.getAttribute('data-id');
+          const modal = document.getElementById('diff-modal');
+          const content = document.getElementById('diff-content');
+          const title = document.getElementById('diff-title');
+          
+          title.textContent = 'Loading diff for review #' + id + '...';
+          content.textContent = 'Loading...';
+          modal.style.display = 'block';
+          
+          try {
+            const response = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>' + id + '/diff', { credentials: 'include' });
+            const data = await response.json();
+            
+            if (data.error) {
+              content.textContent = 'Error: ' + data.error;
+            } else {
+              title.textContent = 'Diff for Review #' + id + ' (' + data.entity_type + ' #' + data.entity_id + ')';
+              content.innerHTML = data.diff;
+            }
+          } catch (error) {
+            content.textContent = 'Error loading diff: ' + error.message;
+          }
+        }
+        
+        function aiAgentCloseDiff() {
+          document.getElementById('diff-modal').style.display = 'none';
+        }
+        
+        // Batch operations
+        function aiAgentToggleAll(checkbox) {
+          const checkboxes = document.querySelectorAll('.review-checkbox');
+          const headerCheckbox = document.getElementById('select-all-header');
+          const mainCheckbox = document.getElementById('select-all-reviews');
+          
+          checkboxes.forEach(cb => cb.checked = checkbox.checked);
+          if (checkbox === headerCheckbox) mainCheckbox.checked = checkbox.checked;
+          if (checkbox === mainCheckbox) headerCheckbox.checked = checkbox.checked;
+          
+          aiAgentUpdateSelection();
+        }
+        
+        function aiAgentUpdateSelection() {
+          const checkboxes = document.querySelectorAll('.review-checkbox:checked');
+          const count = checkboxes.length;
+          const countSpan = document.getElementById('selected-count');
+          const approveBtn = document.getElementById('batch-approve-btn');
+          const rejectBtn = document.getElementById('batch-reject-btn');
+          
+          countSpan.textContent = count + ' selected';
+          approveBtn.disabled = count === 0;
+          rejectBtn.disabled = count === 0;
+          
+          // Update header checkbox state
+          const allCheckboxes = document.querySelectorAll('.review-checkbox');
+          const headerCheckbox = document.getElementById('select-all-header');
+          const mainCheckbox = document.getElementById('select-all-reviews');
+          
+          if (count === 0) {
+            headerCheckbox.checked = false;
+            mainCheckbox.checked = false;
+          } else if (count === allCheckboxes.length) {
+            headerCheckbox.checked = true;
+            mainCheckbox.checked = true;
+          } else {
+            headerCheckbox.checked = false;
+            mainCheckbox.checked = false;
+          }
+        }
+        
+        async function aiAgentBatchApprove() {
+          const checkboxes = document.querySelectorAll('.review-checkbox:checked');
+          const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+          
+          if (ids.length === 0) {
+            alert('Please select reviews to approve');
+            return;
+          }
+          
+          if (!confirm('Approve ' + ids.length + ' selected reviews?')) {
+            return;
+          }
+          
+          try {
+            const response = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/batch-approve') ); ?>', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ids: ids })
+            });
+            
+            const data = await response.json();
+            if (data.approved && data.approved.length > 0) {
+              alert('Successfully approved ' + data.approved.length + ' reviews');
+              location.reload();
+            } else {
+              alert('Error approving reviews');
+            }
+          } catch (error) {
+            alert('Error: ' + error.message);
+          }
+        }
+        
+        async function aiAgentBatchReject() {
+          const checkboxes = document.querySelectorAll('.review-checkbox:checked');
+          const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+          
+          if (ids.length === 0) {
+            alert('Please select reviews to reject');
+            return;
+          }
+          
+          const reason = prompt('Rejection reason for ' + ids.length + ' reviews (optional):');
+          if (reason === null) return; // User cancelled
+          
+          if (!confirm('Reject ' + ids.length + ' selected reviews?')) {
+            return;
+          }
+          
+          try {
+            const response = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/batch-reject') ); ?>', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ids: ids, reason: reason || 'Batch rejection' })
+            });
+            
+            const data = await response.json();
+            if (data.rejected && data.rejected.length > 0) {
+              alert('Successfully rejected ' + data.rejected.length + ' reviews');
+              location.reload();
+            } else {
+              alert('Error rejecting reviews');
+            }
+          } catch (error) {
+            alert('Error: ' + error.message);
+          }
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('diff-modal').addEventListener('click', function(e) {
+          if (e.target === this) {
+            aiAgentCloseDiff();
+          }
+        });
         </script>
         <?php
     }

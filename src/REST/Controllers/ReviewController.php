@@ -99,6 +99,110 @@ final class ReviewController extends BaseRestController
         $this->notifications->notifyReviewEvent($id, $type, $message);
         return new \WP_REST_Response(['ok' => true]);
     }
+
+    /**
+     * @param mixed $request
+     * @return \WP_REST_Response
+     */
+    public function getDiff($request): \WP_REST_Response
+    {
+        $id = (int) $request->get_param('id');
+        global $wpdb;
+        $table = $wpdb->prefix . 'ai_agent_actions';
+        
+        $action = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id = %d", $id), ARRAY_A);
+        if (!$action) {
+            return new \WP_REST_Response(['error' => 'Action not found'], 404);
+        }
+
+        $diff = $this->auditLogger->generateDiff($id);
+        if (!$diff) {
+            return new \WP_REST_Response(['error' => 'Unable to generate diff'], 500);
+        }
+
+        return new \WP_REST_Response([
+            'diff' => $diff,
+            'action_id' => $id,
+            'entity_type' => $action['entity_type'],
+            'entity_id' => $action['entity_id']
+        ]);
+    }
+
+    /**
+     * @param mixed $request
+     * @return \WP_REST_Response
+     */
+    public function batchApprove($request): \WP_REST_Response
+    {
+        $ids = $request->get_param('ids');
+        if (!is_array($ids) || empty($ids)) {
+            return new \WP_REST_Response(['error' => 'No IDs provided'], 400);
+        }
+
+        $userId = function_exists('get_current_user_id') ? (int) get_current_user_id() : 0;
+        $approved = [];
+        $errors = [];
+
+        foreach ($ids as $id) {
+            $id = (int) $id;
+            global $wpdb;
+            $table = $wpdb->prefix . 'ai_agent_actions';
+            
+            $result = $wpdb->update($table, ['status' => 'approved'], ['id' => $id]);
+            if ($result !== false) {
+                $approved[] = $id;
+                $this->auditLogger->logSecurityEvent('review_approved', $userId, ['action_id' => $id, 'error_code' => 'REVIEW_APPROVED', 'error_category' => 'review']);
+                $this->notifications->notifyReviewEvent($id, 'approved');
+            } else {
+                $errors[] = $id;
+            }
+        }
+
+        return new \WP_REST_Response([
+            'approved' => $approved,
+            'errors' => $errors,
+            'total' => count($ids)
+        ]);
+    }
+
+    /**
+     * @param mixed $request
+     * @return \WP_REST_Response
+     */
+    public function batchReject($request): \WP_REST_Response
+    {
+        $ids = $request->get_param('ids');
+        $reason = (string) ($request->get_param('reason') ?? 'Batch rejection');
+        
+        if (!is_array($ids) || empty($ids)) {
+            return new \WP_REST_Response(['error' => 'No IDs provided'], 400);
+        }
+
+        $userId = function_exists('get_current_user_id') ? (int) get_current_user_id() : 0;
+        $rejected = [];
+        $errors = [];
+
+        foreach ($ids as $id) {
+            $id = (int) $id;
+            global $wpdb;
+            $table = $wpdb->prefix . 'ai_agent_actions';
+            
+            $result = $wpdb->update($table, ['status' => 'rejected', 'error' => $reason], ['id' => $id]);
+            if ($result !== false) {
+                $rejected[] = $id;
+                $this->auditLogger->logSecurityEvent('review_rejected', $userId, ['action_id' => $id, 'reason' => $reason, 'error_code' => 'REVIEW_REJECTED', 'error_category' => 'review']);
+                $this->notifications->notifyReviewEvent($id, 'rejected', $reason);
+            } else {
+                $errors[] = $id;
+            }
+        }
+
+        return new \WP_REST_Response([
+            'rejected' => $rejected,
+            'errors' => $errors,
+            'total' => count($ids)
+        ]);
+    }
 }
 
 

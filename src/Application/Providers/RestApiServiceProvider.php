@@ -387,6 +387,46 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 				'message' => ['required' => false, 'type' => 'string'],
 			],
 		]);
+
+		register_rest_route('ai-agent/v1', '/reviews/(?P<id>\\d+)/diff', [
+			'methods' => 'GET',
+			'callback' => [$reviewController, 'getDiff'],
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				if (!$auth['authenticated']) { return false; }
+				return current_user_can('ai_agent_approve_changes') || current_user_can('manage_options');
+			},
+		]);
+
+		register_rest_route('ai-agent/v1', '/reviews/batch-approve', [
+			'methods' => 'POST',
+			'callback' => [$reviewController, 'batchApprove'],
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				if (!$auth['authenticated']) { return false; }
+				return current_user_can('ai_agent_approve_changes') || current_user_can('manage_options');
+			},
+			'args' => [
+				'ids' => ['required' => true, 'type' => 'array'],
+			],
+		]);
+
+		register_rest_route('ai-agent/v1', '/reviews/batch-reject', [
+			'methods' => 'POST',
+			'callback' => [$reviewController, 'batchReject'],
+			'permission_callback' => function ($request) use ($security) {
+				$requestAdapter = new \AIAgent\Infrastructure\Security\WPRestRequestAdapter($request);
+				$auth = $security->authenticateRequest($requestAdapter);
+				if (!$auth['authenticated']) { return false; }
+				return current_user_can('ai_agent_approve_changes') || current_user_can('manage_options');
+			},
+			'args' => [
+				'ids' => ['required' => true, 'type' => 'array'],
+				'reason' => ['required' => false, 'type' => 'string'],
+			],
+		]);
 	}
 
 	public function checkChatPermissions(): bool
