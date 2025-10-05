@@ -91,8 +91,11 @@ final class ReviewModePolicyTest extends TestCase
     {
         // Test that workflow conditions are properly evaluated
         $conditions = [
-            'entity_type' => 'product',
-            'price_change_threshold' => 100
+            [
+                'type' => 'field_numeric_greater',
+                'field' => 'price',
+                'value' => 100
+            ]
         ];
         
         $fields = ['price' => 150];
