@@ -222,4 +222,12 @@ if (!function_exists('wp_mail')) {
     function wp_mail($to, $subject, $message) { return true; }
 }
 
+if (!function_exists('get_current_user_id')) {
+    function get_current_user_id() { return 1; }
+}
+
+if (!function_exists('current_user_can')) {
+    function current_user_can($capability) { return true; }
+}
+
 
