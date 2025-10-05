@@ -21,9 +21,9 @@ use AIAgent\Infrastructure\Security\RoleManager;
 use AIAgent\Support\Logger;
 
 // Bootstrap plugin.
-add_action('plugins_loaded', static function () {
+add_action('init', static function () {
 	Plugin::boot(__FILE__);
-});
+}, 1);
 
 // Plugin activation
 register_activation_hook(__FILE__, static function () {

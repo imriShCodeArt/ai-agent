@@ -33,9 +33,9 @@ final class AdminServiceProvider extends AbstractServiceProvider implements Hook
         /** @var callable(): mixed $addSettingsPageCallback */
         $addSettingsPageCallback = [$settings, 'addSettingsPage'];
 
-        add_action('admin_menu', $addMenuPageCallback);
-        add_action('admin_init', $registerSettingsCallback);
-        add_action('admin_init', $addSettingsPageCallback);
+        add_action('admin_menu', $addMenuPageCallback, 10);
+        add_action('admin_init', $registerSettingsCallback, 10);
+        add_action('admin_init', $addSettingsPageCallback, 10);
         
         // Debug: Log that hooks are being registered
         error_log('AI Agent: AdminServiceProvider hooks registered');
