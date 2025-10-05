@@ -283,7 +283,8 @@ final class ChatController extends BaseRestController
         $suggestedActions = [];
         // Basic intent mapping: create post
         if (preg_match('/\b(create|write|draft)\b.*\b(post|article|blog)\b/i', $prompt)) {
-            $cleanPrompt = trim(preg_replace('/\s+/', ' ', $prompt));
+            $replaced = preg_replace('/\s+/', ' ', $prompt);
+            $cleanPrompt = trim(is_string($replaced) ? $replaced : $prompt);
             $baseTitle = 'Draft: ' . mb_substr($cleanPrompt, 0, 60);
             $suffix = substr(md5($cleanPrompt . microtime(true)), 0, 6);
             $generatedTitle = $baseTitle . ' #' . $suffix;
