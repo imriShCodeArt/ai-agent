@@ -206,9 +206,13 @@ final class AdminMenu
 
     public function renderSettingsPage(): void
     {
-        // Redirect to WordPress settings page
-        wp_redirect(admin_url('options-general.php?page=ai-agent-settings'));
-        exit;
+        if (!current_user_can('manage_options')) { 
+            wp_die('Insufficient permissions'); 
+        }
+        
+        // Get settings instance and render the page
+        $settings = new \AIAgent\Admin\Settings(new \AIAgent\Support\Logger());
+        $settings->renderSettingsPage();
     }
 
     public function renderLogsPage(): void

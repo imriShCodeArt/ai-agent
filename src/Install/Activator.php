@@ -35,6 +35,10 @@ final class Activator
             $this->roleManager->createRole();
             $this->logger->info('AI Agent role created');
 
+            // Add capabilities to administrator role
+            $this->addCapabilitiesToAdministrator();
+            $this->logger->info('AI Agent capabilities added to administrator role');
+
             // Create service user
             $serviceUserId = $this->roleManager->createServiceUser();
             $this->logger->info('AI Agent service user created', ['user_id' => $serviceUserId]);
@@ -141,5 +145,17 @@ final class Activator
         }
 
         $this->logger->info('Plugin options removed', ['count' => count($options)]);
+    }
+
+    private function addCapabilitiesToAdministrator(): void
+    {
+        $adminRole = get_role('administrator');
+        if ($adminRole) {
+            $capabilities = \AIAgent\Infrastructure\Security\Capabilities::getAll();
+            foreach ($capabilities as $capability) {
+                $adminRole->add_cap($capability);
+            }
+            $this->logger->info('AI Agent capabilities added to administrator role', ['capabilities' => $capabilities]);
+        }
     }
 }

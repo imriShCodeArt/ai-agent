@@ -108,6 +108,10 @@ final class Plugin {
             if (method_exists($instance, 'register')) {
                 $instance->register();
             }
+            // Add hookable providers to the hooks loader
+            if ($instance instanceof \AIAgent\Infrastructure\Hooks\HookableInterface) {
+                $this->hooks->add($instance);
+            }
         }
     }
 }

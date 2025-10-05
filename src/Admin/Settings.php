@@ -37,13 +37,8 @@ final class Settings
 
     public function addSettingsPage(): void
     {
-        add_options_page(
-            'AI Agent Settings',
-            'AI Agent',
-            'manage_options',
-            'ai-agent-settings',
-            [$this, 'renderSettingsPage']
-        );
+        // Settings page is now handled by AdminMenu
+        // This method is kept for compatibility but does nothing
     }
 
     public function renderSettingsPage(): void
