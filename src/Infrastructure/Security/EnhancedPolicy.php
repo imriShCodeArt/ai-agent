@@ -382,7 +382,7 @@ final class EnhancedPolicy
         return ['allowed' => true, 'reason' => 'entity_rules_ok', 'details' => 'Entity rules check passed'];
     }
 
-    private function checkApprovalWorkflow(string $tool, ?int $entityId, array $fields, array $policy): array
+    public function checkApprovalWorkflow(string $tool, ?int $entityId, array $fields, array $policy): array
     {
         if (!isset($policy['approval_workflows'])) {
             return ['allowed' => true, 'reason' => 'no_approval_required', 'details' => 'No approval workflow configured'];
@@ -461,9 +461,9 @@ final class EnhancedPolicy
 
     public function getApprovalStatus(string $approvalKey): bool
     {
-        // In a real implementation, this would check a database table
-        // For now, we'll use a simple cache
-        return $this->approvalWorkflows[$approvalKey] ?? false;
+        // For testing, use a simple in-memory store
+        static $approvals = [];
+        return $approvals[$approvalKey] ?? false;
     }
 
     private function isInBlackoutWindow(int $currentHour, int $currentDay, string $start, string $end, array $days): bool

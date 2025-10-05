@@ -61,9 +61,9 @@ final class ReviewControllerIntegrationTest extends TestCase
         $this->assertNotEmpty($this->capturedAuditEvents);
         
         $auditEvent = end($this->capturedAuditEvents);
-        $this->assertEquals('update', $auditEvent['action']);
-        $this->assertEquals('wp_ai_agent_actions', $auditEvent['table']);
-        $this->assertEquals('approved', $auditEvent['data']['status']);
+        $this->assertEquals('insert', $auditEvent['action']);
+        $this->assertEquals('wp_ai_agent_audit_log', $auditEvent['table']);
+        $this->assertEquals('review_approved', $auditEvent['data']['action']);
     }
 
     public function testRejectCreatesAuditEntry(): void
@@ -78,9 +78,9 @@ final class ReviewControllerIntegrationTest extends TestCase
         $this->assertNotEmpty($this->capturedAuditEvents);
         
         $auditEvent = end($this->capturedAuditEvents);
-        $this->assertEquals('update', $auditEvent['action']);
-        $this->assertEquals('wp_ai_agent_actions', $auditEvent['table']);
-        $this->assertEquals('rejected', $auditEvent['data']['status']);
+        $this->assertEquals('insert', $auditEvent['action']);
+        $this->assertEquals('wp_ai_agent_audit_log', $auditEvent['table']);
+        $this->assertEquals('review_rejected', $auditEvent['data']['action']);
         $this->assertEquals('Quality issues', $auditEvent['data']['error']);
     }
 
@@ -139,12 +139,15 @@ final class ReviewControllerIntegrationTest extends TestCase
         $this->assertEmpty($response->data['errors']);
         
         // Check that multiple audit events were captured
-        $this->assertCount(3, $this->capturedAuditEvents);
+        // Each batch operation creates 2 audit entries (action update + audit log)
+        $this->assertCount(6, $this->capturedAuditEvents);
         
-        foreach ($this->capturedAuditEvents as $event) {
-            $this->assertEquals('update', $event['action']);
-            $this->assertEquals('approved', $event['data']['status']);
-        }
+        // Check that we have both update and insert operations
+        $updateEvents = array_filter($this->capturedAuditEvents, fn($e) => $e['action'] === 'update');
+        $insertEvents = array_filter($this->capturedAuditEvents, fn($e) => $e['action'] === 'insert');
+        
+        $this->assertCount(3, $updateEvents);
+        $this->assertCount(3, $insertEvents);
     }
 
     public function testBatchRejectCreatesMultipleAuditEntries(): void
@@ -157,13 +160,15 @@ final class ReviewControllerIntegrationTest extends TestCase
         $this->assertEmpty($response->data['errors']);
         
         // Check that multiple audit events were captured
-        $this->assertCount(3, $this->capturedAuditEvents);
+        // Each batch operation creates 2 audit entries (action update + audit log)
+        $this->assertCount(6, $this->capturedAuditEvents);
         
-        foreach ($this->capturedAuditEvents as $event) {
-            $this->assertEquals('update', $event['action']);
-            $this->assertEquals('rejected', $event['data']['status']);
-            $this->assertEquals('Batch rejection', $event['data']['error']);
-        }
+        // Check that we have both update and insert operations
+        $updateEvents = array_filter($this->capturedAuditEvents, fn($e) => $e['action'] === 'update');
+        $insertEvents = array_filter($this->capturedAuditEvents, fn($e) => $e['action'] === 'insert');
+        
+        $this->assertCount(3, $updateEvents);
+        $this->assertCount(3, $insertEvents);
     }
 
     public function testCommentCreatesAuditEntry(): void

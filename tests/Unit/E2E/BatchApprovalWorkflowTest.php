@@ -74,7 +74,10 @@ final class BatchApprovalWorkflowTest extends TestCase
             public function query($q){ return true; }
             public function prepare($q){ return $q; }
             public function get_charset_collate(){ return ''; }
-            public function insert($table, $data) { return 1; }
+            public function insert($table, $data) { 
+                $this->operations[] = ['action' => 'insert', 'table' => $table, 'data' => $data];
+                return 1; 
+            }
         };
 
         // WordPress functions are now provided by bootstrap.php
