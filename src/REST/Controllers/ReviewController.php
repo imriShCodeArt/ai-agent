@@ -257,15 +257,6 @@ final class ReviewController extends BaseRestController
         ]);
     }
 
-    private function verify_nonce(mixed $request): bool
-    {
-        $nonce = $request->get_header('X-WP-Nonce');
-        if (!$nonce) {
-            $nonce = $request->get_param('_wpnonce');
-        }
-        
-        return wp_verify_nonce($nonce, 'wp_rest');
-    }
 }
 
 
