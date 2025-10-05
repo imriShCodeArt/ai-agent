@@ -49,9 +49,9 @@ Deliver an advanced admin UI for policy management and implement end-to-end revi
 - [x] Easy rollback of approved changes
 
 ### Testing
-- [ ] Unit: approval state transitions and guards
-- [ ] Integration: audit entries on approve/reject
-- [ ] E2E happy paths for batch approvals
+- [x] Unit: approval state transitions and guards
+- [x] Integration: audit entries on approve/reject
+- [x] E2E happy paths for batch approvals
 
 ---
 
@@ -64,12 +64,12 @@ Deliver an advanced admin UI for policy management and implement end-to-end revi
 ---
 
 ## 📌 Definition of Done
-- [ ] Policy management UI functional with validation and versioning
-- [ ] Review/approval workflows operational with diff viewer and batch actions
-- [ ] REST endpoints secured and audited
-- [ ] Notifications wired (admin or email)
-- [ ] PHPUnit green, PHPStan level 8 clean
-- [ ] Documentation updated (README, Developer Guide)
+- [x] Policy management UI functional with validation and versioning
+- [x] Review/approval workflows operational with diff viewer and batch actions
+- [x] REST endpoints secured and audited
+- [x] Notifications wired (admin or email)
+- [x] PHPUnit green, PHPStan level 8 clean
+- [x] Documentation updated (README, Developer Guide)
 
 ---
 

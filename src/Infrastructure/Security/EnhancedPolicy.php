@@ -674,4 +674,61 @@ final class EnhancedPolicy
             ],
         ];
     }
+
+    /**
+     * Get approval status for testing purposes
+     */
+    public function getApprovalStatus(string $approvalKey): bool
+    {
+        // For testing, use a simple in-memory store
+        static $approvals = [];
+        return $approvals[$approvalKey] ?? false;
+    }
+
+    /**
+     * Set approval status for testing purposes
+     */
+    public function setApprovalStatus(string $approvalKey, bool $status): void
+    {
+        // For testing, use a simple in-memory store
+        static $approvals = [];
+        $approvals[$approvalKey] = $status;
+    }
+
+    /**
+     * Evaluate workflow conditions for testing purposes
+     */
+    public function evaluateWorkflowConditions(array $conditions, string $tool, ?int $entityId, array $fields): bool
+    {
+        foreach ($conditions as $key => $value) {
+            if (is_array($value) && count($value) === 2) {
+                // Handle comparison operators like ['>', 100]
+                $operator = $value[0];
+                $threshold = $value[1];
+                $fieldValue = $fields[$key] ?? 0;
+                
+                switch ($operator) {
+                    case '>':
+                        if ($fieldValue <= $threshold) return false;
+                        break;
+                    case '<':
+                        if ($fieldValue >= $threshold) return false;
+                        break;
+                    case '>=':
+                        if ($fieldValue < $threshold) return false;
+                        break;
+                    case '<=':
+                        if ($fieldValue > $threshold) return false;
+                        break;
+                }
+            } else {
+                // Handle exact matches
+                if (isset($fields[$key]) && $fields[$key] !== $value) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
 }
