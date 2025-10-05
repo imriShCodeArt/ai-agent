@@ -7,7 +7,6 @@ use AIAgent\Infrastructure\Security\Policy;
 use AIAgent\Infrastructure\LLM\LLMProviderInterface;
 use AIAgent\Infrastructure\Tools\ToolExecutionEngine;
 use AIAgent\Support\Logger;
-use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
 
@@ -33,7 +32,10 @@ final class ChatController extends BaseRestController
         $this->engine = $engine;
     }
 
-    public function chat(WP_REST_Request $request): WP_REST_Response|WP_Error
+    /**
+     * @param mixed $request
+     */
+    public function chat($request): WP_REST_Response|WP_Error
     {
         // Verify nonce for security
         if (!wp_verify_nonce($request->get_header('X-WP-Nonce'), 'wp_rest')) {
@@ -136,7 +138,10 @@ final class ChatController extends BaseRestController
         }
     }
 
-    public function dryRun(WP_REST_Request $request): WP_REST_Response|WP_Error
+    /**
+     * @param mixed $request
+     */
+    public function dryRun($request): WP_REST_Response|WP_Error
     {
         // Verify nonce for security
         if (!wp_verify_nonce($request->get_header('X-WP-Nonce'), 'wp_rest')) {
@@ -232,7 +237,10 @@ final class ChatController extends BaseRestController
         }
     }
 
-    public function execute(WP_REST_Request $request): WP_REST_Response|WP_Error
+    /**
+     * @param mixed $request
+     */
+    public function execute($request): WP_REST_Response|WP_Error
     {
         if (!wp_verify_nonce($request->get_header('X-WP-Nonce'), 'wp_rest')) {
             return new WP_Error('invalid_nonce', 'Invalid nonce provided', ['status' => 403]);

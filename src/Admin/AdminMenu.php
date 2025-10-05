@@ -6,6 +6,9 @@ final class AdminMenu
 {
     public function addMenuPage(): void
     {
+        // Debug: Log that addMenuPage is being called
+        error_log('AI Agent: addMenuPage() called');
+        
         add_menu_page(
             'AI Agent',
             'AI Agent',
@@ -32,6 +35,42 @@ final class AdminMenu
             'manage_options',
             'ai-agent-settings',
             [$this, 'renderSettingsPage']
+        );
+
+		add_submenu_page(
+			'ai-agent',
+			'Tools',
+			'Tools',
+			'ai_agent_execute_tool',
+			'ai-agent-tools',
+			[$this, 'renderToolsPage']
+		);
+
+		add_submenu_page(
+			'ai-agent',
+			'Policies',
+			'Policies',
+			'ai_agent_manage_policies',
+			'ai-agent-policies',
+			[$this, 'renderPoliciesPage']
+		);
+
+		add_submenu_page(
+			'ai-agent',
+			'Reviews',
+			'Reviews',
+			'ai_agent_approve_changes',
+			'ai-agent-reviews',
+			[$this, 'renderReviewsPage']
+		);
+
+        add_submenu_page(
+            'ai-agent',
+            'Chat',
+            'Chat',
+            'ai_agent_execute_tool',
+            'ai-agent-chat',
+            [$this, 'renderChatPage']
         );
 
         add_submenu_page(
@@ -75,6 +114,14 @@ final class AdminMenu
                         <h3>Status</h3>
                         <p class="ai-agent-stat-text"><?php echo $this->getSystemStatus(); ?></p>
                     </div>
+                </div>
+
+                <div class="ai-agent-quick-chat" style="margin-bottom: 30px;">
+                    <h2>Quick Chat</h2>
+                    <p>Start a conversation with the AI Agent:</p>
+                    <a href="<?php echo admin_url('admin.php?page=ai-agent-chat'); ?>" class="button button-primary">
+                        Open Chat Interface
+                    </a>
                 </div>
 
                 <div class="ai-agent-recent-actions">
@@ -179,9 +226,13 @@ final class AdminMenu
 
     public function renderSettingsPage(): void
     {
-        // Redirect to WordPress settings page
-        wp_redirect(admin_url('options-general.php?page=ai-agent-settings'));
-        exit;
+        if (!current_user_can('manage_options')) { 
+            wp_die('Insufficient permissions'); 
+        }
+        
+        // Get settings instance and render the page
+        $settings = new \AIAgent\Admin\Settings(new \AIAgent\Support\Logger());
+        $settings->renderSettingsPage();
     }
 
     public function renderLogsPage(): void
@@ -302,6 +353,482 @@ final class AdminMenu
                 </table>
             <?php endif; ?>
         </div>
+        <?php
+    }
+
+	public function renderToolsPage(): void
+	{
+		if (!current_user_can('ai_agent_execute_tool')) { wp_die('Insufficient permissions'); }
+		?>
+		<div class="wrap">
+			<h1>AI Agent Tools</h1>
+			<p>Use this utility to dry-run or execute registered tools for testing.</p>
+			<form method="post">
+				<?php wp_nonce_field('ai_agent_tools', 'ai_agent_tools_nonce'); ?>
+				<p><label>Tool Name <input type="text" name="tool" required></label></p>
+				<p><label>Payload (JSON) <textarea name="payload" rows="6" cols="80"></textarea></label></p>
+				<p><button class="button button-primary" name="action" value="dry_run">Dry Run</button>
+				<button class="button" name="action" value="execute">Execute</button></p>
+			</form>
+		</div>
+		<?php
+	}
+
+	public function renderPoliciesPage(): void
+	{
+		if (!current_user_can('ai_agent_manage_policies')) { wp_die('Insufficient permissions'); }
+		?>
+		<div class="wrap">
+			<h1>AI Agent Policies</h1>
+			<p>Manage policy documents governing tool execution.</p>
+
+			<h2>Visual Policy Editor</h2>
+			<div id="ai-agent-policy-editor">
+				<p>
+					<label title="Enter the tool name this policy governs, e.g., products.update or posts.create">Tool 
+						<input type="text" id="ai-agent-policy-tool" placeholder="e.g. products.update">
+					</label>
+				</p>
+				<p><label>Policy JSON</label></p>
+				<p>
+					<textarea id="ai-agent-policy-json" rows="14" cols="100" placeholder="{\n  \"rate_limits\": { \n    \"per_hour\": 50, \n    \"per_day\": 200, \n    \"per_ip_hour\": 100 \n  },\n  \"time_windows\": {\n    \"allowed_hours\": [9,10,11], \n    \"allowed_days\": [1,2,3]\n  },\n  \"content_restrictions\": { \n    \"blocked_terms\": [\"spam\"], \n    \"blocked_patterns\": [] \n  },\n  \"entity_rules\": {},\n  \"approval_workflows\": []\n}"></textarea>
+				</p>
+				<p class="description" title="Top-level keys the policy engine accepts">Allowed keys: <code>rate_limits</code>, <code>time_windows</code>, <code>content_restrictions</code>, <code>entity_rules</code>, <code>approval_workflows</code>.</p>
+				<p id="ai-agent-policy-validate-msg" style="font-weight:600;"></p>
+				<p>
+					<button class="button button-primary" onclick="aiAgentPolicySave()" title="Validate and persist this policy as a new version">Save Policy</button>
+					<button class="button" onclick="aiAgentPolicyTest()" title="Run the policy engine in test mode with sample input">Test Policy</button>
+				</p>
+			</div>
+
+			<h2>Import / Export</h2>
+			<p>
+				<button class="button" onclick="aiAgentPolicyExport()">Export Policy</button>
+				<input type="file" id="ai-agent-policy-import-file" accept="application/json" />
+				<button class="button" onclick="aiAgentPolicyImport()">Import</button>
+			</p>
+
+			<h2>Version Comparison</h2>
+			<p>
+				<label>Version 1 <input type="text" id="ai-agent-policy-v1" placeholder="v1"></label>
+				<label>Version 2 <input type="text" id="ai-agent-policy-v2" placeholder="v2"></label>
+				<button class="button" onclick="aiAgentPolicyDiff()">Compare</button>
+			</p>
+			<pre id="ai-agent-policy-diff"></pre>
+		</div>
+		<script>
+		function aiAgentPolicyValidateStruct(obj){
+		  const allowedKeys = ['rate_limits','time_windows','content_restrictions','entity_rules','approval_workflows'];
+		  for(const k of Object.keys(obj)){
+		    if(!allowedKeys.includes(k)) return {ok:false, error:'Unknown key: '+k};
+		  }
+		  if(obj.rate_limits){
+		    for (const rk of Object.keys(obj.rate_limits)){
+		      if(!['per_hour','per_day','per_ip_hour'].includes(rk)) return {ok:false, error:'Unknown rate_limits key: '+rk};
+		      if (typeof obj.rate_limits[rk] !== 'number') return {ok:false, error:'rate_limits.'+rk+' must be number'};
+		    }
+		  }
+		  if(obj.time_windows){
+		    const tw = obj.time_windows;
+		    if(tw.allowed_hours && !Array.isArray(tw.allowed_hours)) return {ok:false, error:'time_windows.allowed_hours must be array'};
+		    if(tw.allowed_days && !Array.isArray(tw.allowed_days)) return {ok:false, error:'time_windows.allowed_days must be array'};
+		  }
+		  if(obj.content_restrictions){
+		    const cr = obj.content_restrictions;
+		    if(cr.blocked_terms && !Array.isArray(cr.blocked_terms)) return {ok:false, error:'content_restrictions.blocked_terms must be array'};
+		    if(cr.blocked_patterns && !Array.isArray(cr.blocked_patterns)) return {ok:false, error:'content_restrictions.blocked_patterns must be array'};
+		  }
+		  if(obj.approval_workflows){
+		    if(!Array.isArray(obj.approval_workflows)) return {ok:false, error:'approval_workflows must be array'};
+		  }
+		  return {ok:true};
+		}
+
+		function aiAgentPolicyLiveValidate(){
+		  const el = document.getElementById('ai-agent-policy-json');
+		  const msg = document.getElementById('ai-agent-policy-validate-msg');
+		  const raw = el.value.trim();
+		  if(raw === '') { msg.textContent=''; msg.style.color=''; return; }
+		  try {
+		    const parsed = JSON.parse(raw);
+		    const check = aiAgentPolicyValidateStruct(parsed);
+		    if(check.ok){ msg.textContent = 'Valid policy JSON'; msg.style.color = '#008a00'; }
+		    else { msg.textContent = 'Invalid: '+check.error; msg.style.color = '#b00020'; }
+		  } catch(e){
+		    msg.textContent = 'JSON parse error: '+e;
+		    msg.style.color = '#b00020';
+		  }
+		}
+		async function aiAgentPolicySave(){
+		  const tool = document.getElementById('ai-agent-policy-tool').value.trim();
+		  const policy = document.getElementById('ai-agent-policy-json').value;
+		  if(!tool||!policy){ alert('Tool and Policy JSON are required'); return; }
+		  let parsed;
+		  try { parsed = JSON.parse(policy); } catch(e){ alert('Invalid JSON: '+e); return; }
+		  const check = aiAgentPolicyValidateStruct(parsed);
+		  if(!check.ok){ alert('Validation failed: '+check.error); return; }
+		  const res = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/policies') ); ?>', {
+		    method: 'POST',
+		    credentials: 'include',
+		    headers: { 'Content-Type': 'application/json' },
+		    body: JSON.stringify({ tool, policy: parsed })
+		  });
+		  alert(res.ok ? 'Saved' : 'Save failed');
+		}
+		async function aiAgentPolicyTest(){
+		  const tool = document.getElementById('ai-agent-policy-tool').value.trim();
+		  const res = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/policies/') ); ?>'+encodeURIComponent(tool)+'/test', {
+		    method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: {} })
+		  });
+		  const data = await res.json();
+		  alert('Test: '+JSON.stringify(data));
+		}
+		async function aiAgentPolicyExport(){
+		  const tool = document.getElementById('ai-agent-policy-tool').value.trim();
+		  if(!tool){ alert('Set tool'); return; }
+		  const res = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/policies/') ); ?>'+encodeURIComponent(tool), { credentials: 'include' });
+		  const data = await res.json();
+		  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+		  const url = URL.createObjectURL(blob);
+		  const a = document.createElement('a'); a.href = url; a.download = tool+'-policy.json'; a.click(); URL.revokeObjectURL(url);
+		}
+		async function aiAgentPolicyImport(){
+		  const file = document.getElementById('ai-agent-policy-import-file').files[0];
+		  if(!file){ alert('Choose file'); return; }
+		  const text = await file.text();
+		  document.getElementById('ai-agent-policy-json').value = text;
+		  aiAgentPolicyLiveValidate();
+		}
+		async function aiAgentPolicyDiff(){
+		  const tool = document.getElementById('ai-agent-policy-tool').value.trim();
+		  const v1 = document.getElementById('ai-agent-policy-v1').value.trim();
+		  const v2 = document.getElementById('ai-agent-policy-v2').value.trim();
+		  if(!tool||!v1||!v2){ alert('Set tool and versions'); return; }
+		  const res = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/policies/') ); ?>'+encodeURIComponent(tool)+'/diff?version1='+encodeURIComponent(v1)+'&version2='+encodeURIComponent(v2), { credentials: 'include' });
+		  const data = await res.json();
+		  document.getElementById('ai-agent-policy-diff').textContent = JSON.stringify(data, null, 2);
+		}
+		// Attach live validation
+		document.addEventListener('DOMContentLoaded', function(){
+		  var el = document.getElementById('ai-agent-policy-json');
+		  if(el){ el.addEventListener('input', aiAgentPolicyLiveValidate); }
+		});
+		</script>
+		<?php
+	}
+
+    public function renderChatPage(): void
+    {
+        if (!current_user_can('ai_agent_execute_tool')) { 
+            wp_die('Insufficient permissions'); 
+        }
+        
+        // Get current mode from settings
+        $mode = get_option('ai_agent_mode', 'suggest');
+        ?>
+        <div class="wrap">
+            <h1>AI Agent Chat</h1>
+            <p>Chat directly with the AI Agent to manage your content and site.</p>
+            
+            <div style="margin-bottom: 20px;">
+                <strong>Current Mode:</strong> 
+                <span style="padding: 4px 8px; background: #0073aa; color: white; border-radius: 3px;">
+                    <?php echo esc_html(ucfirst($mode)); ?>
+                </span>
+                <a href="<?php echo admin_url('admin.php?page=ai-agent-settings'); ?>" class="button button-small">
+                    Change Mode
+                </a>
+            </div>
+            
+            <?php
+            // Use the ChatWidget to render the chat interface
+            $chatWidget = new \AIAgent\Frontend\ChatWidget(new \AIAgent\Support\Logger());
+            echo $chatWidget->renderChatWidget([
+                'mode' => $mode,
+                'types' => implode(',', get_option('ai_agent_allowed_post_types', ['post', 'page'])),
+                'max_ops' => get_option('ai_agent_rate_limit_hourly', 20),
+                'height' => '600px',
+                'width' => '100%'
+            ]);
+            ?>
+        </div>
+        <?php
+    }
+
+    public function renderReviewsPage(): void
+    {
+        if (!current_user_can('ai_agent_approve_changes')) { wp_die('Insufficient permissions'); }
+        global $wpdb;
+        $table = $wpdb->prefix . 'ai_agent_actions';
+        $rows = $wpdb->get_results("SELECT * FROM $table WHERE status = 'pending' ORDER BY ts DESC LIMIT 50", ARRAY_A);
+        ?>
+        <div class="wrap">
+            <h1>AI Agent Reviews</h1>
+            <?php if (empty($rows)): ?>
+                <p>No pending reviews.</p>
+            <?php else: ?>
+                <div class="ai-agent-reviews-container">
+                    <div class="ai-agent-batch-controls" style="margin-bottom: 20px; padding: 10px; background: #f1f1f1; border-radius: 4px;">
+                        <label>
+                            <input type="checkbox" id="select-all-reviews" onchange="aiAgentToggleAll(this)">
+                            Select All
+                        </label>
+                        <button class="button button-primary" onclick="aiAgentBatchApprove()" disabled id="batch-approve-btn">
+                            Approve Selected
+                        </button>
+                        <button class="button" onclick="aiAgentBatchReject()" disabled id="batch-reject-btn">
+                            Reject Selected
+                        </button>
+                        <span id="selected-count" style="margin-left: 10px; color: #666;">0 selected</span>
+                    </div>
+                    
+                    <table class="wp-list-table widefat fixed striped">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;">
+                                    <input type="checkbox" id="select-all-header" onchange="aiAgentToggleAll(this)">
+                                </th>
+                                <th>ID</th>
+                                <th>Time</th>
+                                <th>User</th>
+                                <th>Tool</th>
+                                <th>Entity</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($rows as $r): ?>
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="review-checkbox" value="<?php echo esc_attr((string) $r['id']); ?>" onchange="aiAgentUpdateSelection()">
+                                </td>
+                                <td><?php echo esc_html($r['id']); ?></td>
+                                <td><?php echo esc_html($r['ts']); ?></td>
+                                <td><?php echo esc_html(get_user_by('id', $r['user_id'])->display_name ?? 'Unknown'); ?></td>
+                                <td><?php echo esc_html($r['tool']); ?></td>
+                                <td><?php echo esc_html($r['entity_type'] . ' #' . $r['entity_id']); ?></td>
+                                <td>
+                                    <button class="button button-small" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentViewDiff(this)">View Diff</button>
+                                    <?php if ($r['status'] === 'pending'): ?>
+                                        <button class="button button-primary button-small" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentApprove(this)">Approve</button>
+                                        <button class="button button-small" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentReject(this)">Reject</button>
+                                    <?php elseif ($r['status'] === 'approved'): ?>
+                                        <button class="button button-secondary button-small" data-id="<?php echo esc_attr((string) $r['id']); ?>" onclick="aiAgentRollback(this)">Rollback</button>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Diff Viewer Modal -->
+                <div id="diff-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 90%; height: 80%; border-radius: 4px; overflow: hidden;">
+                        <div style="padding: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 id="diff-title">Review Diff</h3>
+                            <button onclick="aiAgentCloseDiff()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                        </div>
+                        <div id="diff-content" style="padding: 15px; height: calc(100% - 60px); overflow: auto; font-family: monospace; white-space: pre-wrap;"></div>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+        <script>
+        async function aiAgentApprove(btn){
+          const id = btn.getAttribute('data-id');
+          await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>'+id+'/approve', { method: 'POST', credentials: 'include' });
+          location.reload();
+        }
+        async function aiAgentReject(btn){
+          const id = btn.getAttribute('data-id');
+          const reason = prompt('Rejection reason (optional):');
+          await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>'+id+'/reject', { 
+            method: 'POST', 
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: reason || '' })
+          });
+          location.reload();
+        }
+        
+        // Diff viewer functions
+        async function aiAgentViewDiff(btn) {
+          const id = btn.getAttribute('data-id');
+          const modal = document.getElementById('diff-modal');
+          const content = document.getElementById('diff-content');
+          const title = document.getElementById('diff-title');
+          
+          title.textContent = 'Loading diff for review #' + id + '...';
+          content.textContent = 'Loading...';
+          modal.style.display = 'block';
+          
+          try {
+            const response = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>' + id + '/diff', { credentials: 'include' });
+            const data = await response.json();
+            
+            if (data.error) {
+              content.textContent = 'Error: ' + data.error;
+            } else {
+              title.textContent = 'Diff for Review #' + id + ' (' + data.entity_type + ' #' + data.entity_id + ')';
+              content.innerHTML = data.diff;
+            }
+          } catch (error) {
+            content.textContent = 'Error loading diff: ' + error.message;
+          }
+        }
+        
+        function aiAgentCloseDiff() {
+          document.getElementById('diff-modal').style.display = 'none';
+        }
+        
+        // Batch operations
+        function aiAgentToggleAll(checkbox) {
+          const checkboxes = document.querySelectorAll('.review-checkbox');
+          const headerCheckbox = document.getElementById('select-all-header');
+          const mainCheckbox = document.getElementById('select-all-reviews');
+          
+          checkboxes.forEach(cb => cb.checked = checkbox.checked);
+          if (checkbox === headerCheckbox) mainCheckbox.checked = checkbox.checked;
+          if (checkbox === mainCheckbox) headerCheckbox.checked = checkbox.checked;
+          
+          aiAgentUpdateSelection();
+        }
+        
+        function aiAgentUpdateSelection() {
+          const checkboxes = document.querySelectorAll('.review-checkbox:checked');
+          const count = checkboxes.length;
+          const countSpan = document.getElementById('selected-count');
+          const approveBtn = document.getElementById('batch-approve-btn');
+          const rejectBtn = document.getElementById('batch-reject-btn');
+          
+          countSpan.textContent = count + ' selected';
+          approveBtn.disabled = count === 0;
+          rejectBtn.disabled = count === 0;
+          
+          // Update header checkbox state
+          const allCheckboxes = document.querySelectorAll('.review-checkbox');
+          const headerCheckbox = document.getElementById('select-all-header');
+          const mainCheckbox = document.getElementById('select-all-reviews');
+          
+          if (count === 0) {
+            headerCheckbox.checked = false;
+            mainCheckbox.checked = false;
+          } else if (count === allCheckboxes.length) {
+            headerCheckbox.checked = true;
+            mainCheckbox.checked = true;
+          } else {
+            headerCheckbox.checked = false;
+            mainCheckbox.checked = false;
+          }
+        }
+        
+        async function aiAgentBatchApprove() {
+          const checkboxes = document.querySelectorAll('.review-checkbox:checked');
+          const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+          
+          if (ids.length === 0) {
+            alert('Please select reviews to approve');
+            return;
+          }
+          
+          if (!confirm('Approve ' + ids.length + ' selected reviews?')) {
+            return;
+          }
+          
+          try {
+            const response = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/batch-approve') ); ?>', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ids: ids })
+            });
+            
+            const data = await response.json();
+            if (data.approved && data.approved.length > 0) {
+              alert('Successfully approved ' + data.approved.length + ' reviews');
+              location.reload();
+            } else {
+              alert('Error approving reviews');
+            }
+          } catch (error) {
+            alert('Error: ' + error.message);
+          }
+        }
+        
+        async function aiAgentBatchReject() {
+          const checkboxes = document.querySelectorAll('.review-checkbox:checked');
+          const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+          
+          if (ids.length === 0) {
+            alert('Please select reviews to reject');
+            return;
+          }
+          
+          const reason = prompt('Rejection reason for ' + ids.length + ' reviews (optional):');
+          if (reason === null) return; // User cancelled
+          
+          if (!confirm('Reject ' + ids.length + ' selected reviews?')) {
+            return;
+          }
+          
+          try {
+            const response = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/batch-reject') ); ?>', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ids: ids, reason: reason || 'Batch rejection' })
+            });
+            
+            const data = await response.json();
+            if (data.rejected && data.rejected.length > 0) {
+              alert('Successfully rejected ' + data.rejected.length + ' reviews');
+              location.reload();
+            } else {
+              alert('Error rejecting reviews');
+            }
+          } catch (error) {
+            alert('Error: ' + error.message);
+          }
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('diff-modal').addEventListener('click', function(e) {
+          if (e.target === this) {
+            aiAgentCloseDiff();
+          }
+        });
+        
+        // Rollback function
+        async function aiAgentRollback(btn) {
+          const id = btn.getAttribute('data-id');
+          const reason = prompt('Rollback reason (optional):');
+          if (reason === null) return; // User cancelled
+          
+          if (!confirm('Rollback this approved action?')) {
+            return;
+          }
+          
+          try {
+            const response = await fetch('<?php echo esc_url_raw( rest_url('ai-agent/v1/reviews/') ); ?>' + id + '/rollback', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reason: reason || 'Rollback requested' })
+            });
+            
+            const data = await response.json();
+            if (data.ok) {
+              alert('Action rolled back successfully');
+              location.reload();
+            } else {
+              alert('Error: ' + (data.error || 'Failed to rollback'));
+            }
+          } catch (error) {
+            alert('Error: ' + error.message);
+          }
+        }
+        </script>
         <?php
     }
 
