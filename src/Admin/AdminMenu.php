@@ -66,6 +66,15 @@ final class AdminMenu
 
         add_submenu_page(
             'ai-agent',
+            'Chat',
+            'Chat',
+            'ai_agent_execute_tool',
+            'ai-agent-chat',
+            [$this, 'renderChatPage']
+        );
+
+        add_submenu_page(
+            'ai-agent',
             'Audit Logs',
             'Audit Logs',
             'ai_agent_view_logs',
@@ -105,6 +114,14 @@ final class AdminMenu
                         <h3>Status</h3>
                         <p class="ai-agent-stat-text"><?php echo $this->getSystemStatus(); ?></p>
                     </div>
+                </div>
+
+                <div class="ai-agent-quick-chat" style="margin-bottom: 30px;">
+                    <h2>Quick Chat</h2>
+                    <p>Start a conversation with the AI Agent:</p>
+                    <a href="<?php echo admin_url('admin.php?page=ai-agent-chat'); ?>" class="button button-primary">
+                        Open Chat Interface
+                    </a>
                 </div>
 
                 <div class="ai-agent-recent-actions">
@@ -499,6 +516,44 @@ final class AdminMenu
 		</script>
 		<?php
 	}
+
+    public function renderChatPage(): void
+    {
+        if (!current_user_can('ai_agent_execute_tool')) { 
+            wp_die('Insufficient permissions'); 
+        }
+        
+        // Get current mode from settings
+        $mode = get_option('ai_agent_mode', 'suggest');
+        ?>
+        <div class="wrap">
+            <h1>AI Agent Chat</h1>
+            <p>Chat directly with the AI Agent to manage your content and site.</p>
+            
+            <div style="margin-bottom: 20px;">
+                <strong>Current Mode:</strong> 
+                <span style="padding: 4px 8px; background: #0073aa; color: white; border-radius: 3px;">
+                    <?php echo esc_html(ucfirst($mode)); ?>
+                </span>
+                <a href="<?php echo admin_url('admin.php?page=ai-agent-settings'); ?>" class="button button-small">
+                    Change Mode
+                </a>
+            </div>
+            
+            <?php
+            // Use the ChatWidget to render the chat interface
+            $chatWidget = new \AIAgent\Frontend\ChatWidget(new \AIAgent\Support\Logger());
+            echo $chatWidget->renderChatWidget([
+                'mode' => $mode,
+                'types' => implode(',', get_option('ai_agent_allowed_post_types', ['post', 'page'])),
+                'max_ops' => get_option('ai_agent_rate_limit_hourly', 20),
+                'height' => '600px',
+                'width' => '100%'
+            ]);
+            ?>
+        </div>
+        <?php
+    }
 
     public function renderReviewsPage(): void
     {
