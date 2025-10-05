@@ -257,7 +257,7 @@ final class ReviewController extends BaseRestController
         ]);
     }
 
-    private function verify_nonce($request): bool
+    private function verify_nonce(mixed $request): bool
     {
         $nonce = $request->get_header('X-WP-Nonce');
         if (!$nonce) {
@@ -265,16 +265,6 @@ final class ReviewController extends BaseRestController
         }
         
         return wp_verify_nonce($nonce, 'wp_rest');
-    }
-
-    private function check_review_permission($request): bool
-    {
-        // Verify nonce for security
-        if (!$this->verify_nonce($request)) {
-            return false;
-        }
-        
-        return current_user_can('ai_agent_approve_changes') || current_user_can('manage_options');
     }
 }
 

@@ -488,7 +488,7 @@ final class NotificationsController extends BaseRestController
         ];
     }
 
-    public function check_notification_read_permission($request): bool
+    public function check_notification_read_permission(mixed $request): bool
     {
         // Verify nonce for security
         if (!$this->verify_nonce($request)) {
@@ -498,7 +498,7 @@ final class NotificationsController extends BaseRestController
         return current_user_can('manage_options') || current_user_can('ai_agent_view_logs');
     }
 
-    public function check_notification_write_permission($request): bool
+    public function check_notification_write_permission(mixed $request): bool
     {
         // Verify nonce for security
         if (!$this->verify_nonce($request)) {
@@ -508,7 +508,7 @@ final class NotificationsController extends BaseRestController
         return current_user_can('manage_options') || current_user_can('ai_agent_manage_policies');
     }
 
-    private function verify_nonce($request): bool
+    private function verify_nonce(mixed $request): bool
     {
         $nonce = $request->get_header('X-WP-Nonce');
         if (!$nonce) {
