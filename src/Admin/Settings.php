@@ -25,6 +25,9 @@ final class Settings
         register_setting('ai_agent_settings', 'ai_agent_blocked_terms');
         register_setting('ai_agent_settings', 'ai_agent_allowed_hours');
         register_setting('ai_agent_settings', 'ai_agent_woocommerce_enabled');
+		// OpenAI settings
+		register_setting('ai_agent_settings', 'ai_agent_openai_api_key');
+		register_setting('ai_agent_settings', 'ai_agent_openai_model');
         register_setting('ai_agent_settings', 'ai_agent_oauth2_client_id');
         register_setting('ai_agent_settings', 'ai_agent_oauth2_client_secret');
         register_setting('ai_agent_settings', 'ai_agent_oauth2_authorization_url');
@@ -172,6 +175,34 @@ final class Settings
                     </tr>
                 </table>
 
+				<h2>OpenAI</h2>
+				<table class="form-table">
+					<tr>
+						<th scope="row">API Key</th>
+						<td>
+							<input type="password" name="ai_agent_openai_api_key" value="<?php echo esc_attr(get_option('ai_agent_openai_api_key', '')); ?>" autocomplete="off" />
+							<p class="description">Stored in the WordPress options table. Required for OpenAI features.</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">Model</th>
+						<td>
+							<select name="ai_agent_openai_model">
+							<?php $currentModel = (string) get_option('ai_agent_openai_model', 'gpt-5-mini'); ?>
+								<option value="gpt-5-mini" <?php selected($currentModel, 'gpt-5-mini'); ?>>gpt-5-mini</option>
+								<option value="gpt-5" <?php selected($currentModel, 'gpt-5'); ?>>gpt-5</option>
+								<option value="gpt-5.1-mini" <?php selected($currentModel, 'gpt-5.1-mini'); ?>>gpt-5.1-mini</option>
+								<option value="gpt-5.1" <?php selected($currentModel, 'gpt-5.1'); ?>>gpt-5.1</option>
+								<option value="gpt-4o-mini" <?php selected($currentModel, 'gpt-4o-mini'); ?>>gpt-4o-mini</option>
+								<option value="gpt-4o" <?php selected($currentModel, 'gpt-4o'); ?>>gpt-4o</option>
+								<option value="gpt-4.1-mini" <?php selected($currentModel, 'gpt-4.1-mini'); ?>>gpt-4.1-mini</option>
+								<option value="gpt-4.1" <?php selected($currentModel, 'gpt-4.1'); ?>>gpt-4.1</option>
+							</select>
+							<p class="description">Default model for text generation and summaries.</p>
+						</td>
+					</tr>
+				</table>
+
                 <h2>Integrations</h2>
                 <table class="form-table">
                     <tr>
@@ -276,6 +307,10 @@ final class Settings
         update_option('ai_agent_oauth2_user_info_url', esc_url_raw((string) ($_POST['ai_agent_oauth2_user_info_url'] ?? '')));
         $scopes = array_filter(array_map('trim', explode(',', (string) ($_POST['ai_agent_oauth2_scopes'] ?? 'read,write'))));
         update_option('ai_agent_oauth2_scopes', $scopes);
+
+		// OpenAI options
+		update_option('ai_agent_openai_api_key', sanitize_text_field((string) ($_POST['ai_agent_openai_api_key'] ?? '')));
+		update_option('ai_agent_openai_model', sanitize_text_field((string) ($_POST['ai_agent_openai_model'] ?? 'gpt-5-mini')));
 
         foreach ($settings as $key => $value) {
             update_option('ai_agent_' . $key, $value);

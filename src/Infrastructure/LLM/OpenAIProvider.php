@@ -17,7 +17,13 @@ final class OpenAIProvider implements LLMProviderInterface
     /** @inheritDoc */
     public function complete(string $prompt, array $options = []): string
     {
-        $model = (string) ($options['model'] ?? (function_exists('get_option') ? get_option('ai_agent_openai_model', 'gpt-4o-mini') : 'gpt-4o-mini'));
+        // If API key is not configured, return a helpful stub
+        if (trim($this->apiKey) === '') {
+            $this->logger->warning('OpenAI API key not configured');
+            return 'The AI provider is not configured. Please set an OpenAI API key in AI Agent → Settings → OpenAI.';
+        }
+
+        $model = (string) ($options['model'] ?? (function_exists('get_option') ? get_option('ai_agent_openai_model', 'gpt-5-mini') : 'gpt-5-mini'));
         $temperature = (float) ($options['temperature'] ?? 0.3);
 
         $body = [
@@ -25,8 +31,11 @@ final class OpenAIProvider implements LLMProviderInterface
             'messages' => [
                 ['role' => 'user', 'content' => $prompt],
             ],
-            'temperature' => $temperature,
         ];
+        // Some GPT‑5 models only support default temperature; omit when model starts with gpt-5
+        if (stripos($model, 'gpt-5') === false) {
+            $body['temperature'] = $temperature;
+        }
 
         // In non-WordPress/unit-test contexts, fall back to a stubbed response
         if (!function_exists('wp_remote_post')) {
@@ -45,15 +54,21 @@ final class OpenAIProvider implements LLMProviderInterface
 
         if (function_exists('is_wp_error') && is_wp_error($response)) {
             $this->logger->error('OpenAI request failed', ['error' => $response->get_error_message()]);
-            return '';
+            return 'I could not contact the AI service. Please verify your OpenAI API key and internet connectivity.';
         }
 
         $code = function_exists('wp_remote_retrieve_response_code') ? (int) wp_remote_retrieve_response_code($response) : 200;
         $bodyStr = function_exists('wp_remote_retrieve_body') ? (string) wp_remote_retrieve_body($response) : '';
         $data = json_decode($bodyStr, true);
         if ($code !== 200 || !is_array($data)) {
+            $errorMsg = '';
+            if (is_array($data) && isset($data['error']['message'])) {
+                $errorMsg = (string) $data['error']['message'];
+            }
             $this->logger->error('OpenAI bad response', ['code' => $code, 'body' => $data]);
-            return '';
+            return $errorMsg !== ''
+                ? 'OpenAI error: ' . $errorMsg
+                : 'The AI service returned an unexpected response. Please try again later or adjust your model settings.';
         }
 
         $content = $data['choices'][0]['message']['content'] ?? '';

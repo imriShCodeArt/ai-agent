@@ -276,10 +276,29 @@ final class ChatController extends BaseRestController
     {
         // Ask the LLM for a suggested summary and tools
         $llmResult = $this->llm->complete('Summarize user intent and propose a tool if relevant: ' . $prompt);
+        if (!is_string($llmResult) || trim($llmResult) === '') {
+            $llmResult = 'I received your message but could not generate a response. Please ensure the AI provider is configured in AI Agent → Settings → OpenAI and try again.';
+        }
 
         $suggestedActions = [];
-        // naive rule: if prompt mentions "summarize", suggest text.summarize
-        if (stripos($prompt, 'summarize') !== false || stripos($llmResult, 'summary') !== false) {
+        // Basic intent mapping: create post
+        if (preg_match('/\b(create|write|draft)\b.*\b(post|article|blog)\b/i', $prompt)) {
+            $cleanPrompt = trim(preg_replace('/\s+/', ' ', $prompt));
+            $baseTitle = 'Draft: ' . mb_substr($cleanPrompt, 0, 60);
+            $suffix = substr(md5($cleanPrompt . microtime(true)), 0, 6);
+            $generatedTitle = $baseTitle . ' #' . $suffix;
+            $suggestedActions[] = [
+                'tool' => 'posts.create',
+                'parameters' => [
+                    'post_title' => $generatedTitle,
+                    'post_content' => 'Draft content based on: ' . $prompt,
+                    'post_status' => 'draft',
+                    'post_type' => 'post',
+                ],
+            ];
+        }
+        // Fallback: summarization
+        if (empty($suggestedActions) && (stripos($prompt, 'summarize') !== false || stripos($llmResult, 'summary') !== false)) {
             $suggestedActions[] = [
                 'tool' => 'text.summarize',
                 'parameters' => [

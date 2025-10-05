@@ -63,6 +63,11 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 			return new EnhancedAuditLogger($this->container->get(Logger::class));
 		});
 
+		// Capabilities binding required by ToolExecutionEngine
+		$this->container->singleton(Capabilities::class, function () {
+			return new Capabilities();
+		});
+
 		$this->container->singleton(HmacSigner::class, function () {
 			return new HmacSigner($this->container->get(Logger::class));
 		});
