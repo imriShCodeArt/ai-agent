@@ -461,9 +461,12 @@ final class EnhancedPolicy
 
     public function getApprovalStatus(string $approvalKey): bool
     {
-        // For testing, use a simple in-memory store
-        static $approvals = [];
-        return $approvals[$approvalKey] ?? false;
+        // For testing, use a global store
+        global $ai_agent_test_approvals;
+        if (!isset($ai_agent_test_approvals)) {
+            $ai_agent_test_approvals = [];
+        }
+        return $ai_agent_test_approvals[$approvalKey] ?? false;
     }
 
     private function isInBlackoutWindow(int $currentHour, int $currentDay, string $start, string $end, array $days): bool
@@ -680,8 +683,11 @@ final class EnhancedPolicy
      */
     public function setApprovalStatus(string $approvalKey, bool $status): void
     {
-        // For testing, use a simple in-memory store
-        static $approvals = [];
-        $approvals[$approvalKey] = $status;
+        // For testing, use a global store
+        global $ai_agent_test_approvals;
+        if (!isset($ai_agent_test_approvals)) {
+            $ai_agent_test_approvals = [];
+        }
+        $ai_agent_test_approvals[$approvalKey] = $status;
     }
 }

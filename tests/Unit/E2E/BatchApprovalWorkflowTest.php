@@ -98,14 +98,21 @@ final class BatchApprovalWorkflowTest extends TestCase
         $this->assertEmpty($response->data['errors']);
         $this->assertEquals(3, $response->data['total']);
         
-        // Verify all items were updated
-        $this->assertCount(3, $GLOBALS['wpdb']->operations);
+        // Verify all items were updated (3 updates + 3 audit inserts = 6 operations)
+        $this->assertCount(6, $GLOBALS['wpdb']->operations);
         
-        foreach ($GLOBALS['wpdb']->operations as $op) {
-            $this->assertEquals('update', $op['action']);
+        // Check that we have 3 update operations for actions
+        $updateOps = array_filter($GLOBALS['wpdb']->operations, fn($op) => $op['action'] === 'update');
+        $this->assertCount(3, $updateOps);
+        
+        foreach ($updateOps as $op) {
             $this->assertEquals('wp_ai_agent_actions', $op['table']);
             $this->assertEquals('approved', $op['data']['status']);
         }
+        
+        // Check that we have 3 insert operations for audit logs
+        $insertOps = array_filter($GLOBALS['wpdb']->operations, fn($op) => $op['action'] === 'insert');
+        $this->assertCount(3, $insertOps);
     }
 
     public function testBatchRejectHappyPath(): void
@@ -123,15 +130,22 @@ final class BatchApprovalWorkflowTest extends TestCase
         $this->assertEmpty($response->data['errors']);
         $this->assertEquals(3, $response->data['total']);
         
-        // Verify all items were updated
-        $this->assertCount(3, $GLOBALS['wpdb']->operations);
+        // Verify all items were updated (3 updates + 3 audit inserts = 6 operations)
+        $this->assertCount(6, $GLOBALS['wpdb']->operations);
         
-        foreach ($GLOBALS['wpdb']->operations as $op) {
-            $this->assertEquals('update', $op['action']);
+        // Check that we have 3 update operations for actions
+        $updateOps = array_filter($GLOBALS['wpdb']->operations, fn($op) => $op['action'] === 'update');
+        $this->assertCount(3, $updateOps);
+        
+        foreach ($updateOps as $op) {
             $this->assertEquals('wp_ai_agent_actions', $op['table']);
             $this->assertEquals('rejected', $op['data']['status']);
             $this->assertEquals('Quality issues', $op['data']['error']);
         }
+        
+        // Check that we have 3 insert operations for audit logs
+        $insertOps = array_filter($GLOBALS['wpdb']->operations, fn($op) => $op['action'] === 'insert');
+        $this->assertCount(3, $insertOps);
     }
 
     public function testBatchApproveWithMixedStatuses(): void

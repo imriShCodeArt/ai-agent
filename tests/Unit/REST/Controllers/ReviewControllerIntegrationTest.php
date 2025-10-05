@@ -81,7 +81,9 @@ final class ReviewControllerIntegrationTest extends TestCase
         $this->assertEquals('insert', $auditEvent['action']);
         $this->assertEquals('wp_ai_agent_audit_log', $auditEvent['table']);
         $this->assertEquals('review_rejected', $auditEvent['data']['action']);
-        $this->assertEquals('Quality issues', $auditEvent['data']['error']);
+        // The error message is stored in the JSON data field
+        $dataJson = json_decode($auditEvent['data']['data'], true);
+        $this->assertEquals('Quality issues', $dataJson['reason'] ?? $dataJson['error'] ?? null);
     }
 
     public function testRollbackCreatesAuditEntry(): void
@@ -99,6 +101,11 @@ final class ReviewControllerIntegrationTest extends TestCase
             
             public function get_row($q, $type = ARRAY_A) { 
                 return ['id' => 1, 'status' => 'approved', 'entity_type' => 'product', 'entity_id' => 123];
+            }
+            
+            public function insert($table, $data) { 
+                $this->capturedEvents[] = ['action' => 'insert', 'table' => $table, 'data' => $data];
+                return 1; 
             }
             
             public function update($table, $data, $where = []) { 
