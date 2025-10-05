@@ -130,10 +130,20 @@ final class ReviewControllerIntegrationTest extends TestCase
         // Check that audit event was captured
         $this->assertNotEmpty($this->capturedAuditEvents);
         
-        $auditEvent = end($this->capturedAuditEvents);
-        $this->assertEquals('update', $auditEvent['action']);
-        $this->assertEquals('wp_ai_agent_actions', $auditEvent['table']);
-        $this->assertEquals('rolled_back', $auditEvent['data']['status']);
+        // Check that we have both update and insert operations
+        $updateEvents = array_filter($this->capturedAuditEvents, fn($e) => $e['action'] === 'update');
+        $insertEvents = array_filter($this->capturedAuditEvents, fn($e) => $e['action'] === 'insert');
+        
+        // Should have 1 update for the action status change
+        $this->assertCount(1, $updateEvents);
+        $updateEvent = reset($updateEvents);
+        $this->assertEquals('wp_ai_agent_actions', $updateEvent['table']);
+        $this->assertEquals('rolled_back', $updateEvent['data']['status']);
+        
+        // Should have 1 insert for the audit log
+        $this->assertCount(1, $insertEvents);
+        $insertEvent = reset($insertEvents);
+        $this->assertEquals('wp_ai_agent_audit_log', $insertEvent['table']);
     }
 
     public function testBatchApproveCreatesMultipleAuditEntries(): void
