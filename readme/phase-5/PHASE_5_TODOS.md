@@ -25,9 +25,9 @@ Deliver an advanced admin UI for policy management and implement end-to-end revi
 - [x] Persist policies as versioned docs (audit-friendly)
 
 ### Testing
-- [*] Unit: schema/validator pass/fail cases
-- [*] Integration: admin screens render without notices
-- [*] Snapshot/diff tests for version comparison
+- [x] Unit: schema/validator pass/fail cases
+- [x] Integration: admin screens render without notices
+- [x] Snapshot/diff tests for version comparison
 
 ---
 
