@@ -79,9 +79,11 @@ final class Plugin {
      */
     public static function boot(string $pluginFile): void {
         if (self::$instance === null) {
+            error_log('AI Agent: Plugin::boot() called');
             self::$instance = new self($pluginFile);
             self::$instance->registerProviders();
             self::$instance->hooks->register();
+            error_log('AI Agent: Plugin boot completed');
         }
     }
 

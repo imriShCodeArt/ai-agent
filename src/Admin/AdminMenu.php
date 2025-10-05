@@ -6,6 +6,9 @@ final class AdminMenu
 {
     public function addMenuPage(): void
     {
+        // Debug: Log that addMenuPage is being called
+        error_log('AI Agent: addMenuPage() called');
+        
         add_menu_page(
             'AI Agent',
             'AI Agent',
