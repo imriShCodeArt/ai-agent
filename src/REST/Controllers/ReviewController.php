@@ -4,18 +4,21 @@ namespace AIAgent\REST\Controllers;
 
 use AIAgent\Support\Logger;
 use AIAgent\Infrastructure\Audit\EnhancedAuditLogger;
+use AIAgent\Infrastructure\Audit\AuditLogger;
 use AIAgent\Infrastructure\Notifications\NotificationsService;
 
 final class ReviewController extends BaseRestController
 {
     private Logger $logger;
     private EnhancedAuditLogger $auditLogger;
+    private AuditLogger $diffLogger;
     private NotificationsService $notifications;
 
     public function __construct(Logger $logger)
     {
         $this->logger = $logger;
         $this->auditLogger = new EnhancedAuditLogger($logger);
+        $this->diffLogger = new AuditLogger($logger);
         $this->notifications = new NotificationsService($logger);
     }
 
@@ -115,7 +118,7 @@ final class ReviewController extends BaseRestController
             return new \WP_REST_Response(['error' => 'Action not found'], 404);
         }
 
-        $diff = $this->auditLogger->generateDiff($id);
+        $diff = $this->diffLogger->generateDiff($id);
         if (!$diff) {
             return new \WP_REST_Response(['error' => 'Unable to generate diff'], 500);
         }
