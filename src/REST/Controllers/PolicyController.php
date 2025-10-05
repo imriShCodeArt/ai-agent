@@ -422,13 +422,33 @@ final class PolicyController extends BaseRestController
         return true;
     }
 
-    public function check_policy_read_permission(): bool
+    public function check_policy_read_permission($request): bool
     {
+        // Verify nonce for security
+        if (!$this->verify_nonce($request)) {
+            return false;
+        }
+        
         return current_user_can('manage_options') || current_user_can('ai_agent_read_policies');
     }
 
-    public function check_policy_write_permission(): bool
+    public function check_policy_write_permission($request): bool
     {
+        // Verify nonce for security
+        if (!$this->verify_nonce($request)) {
+            return false;
+        }
+        
         return current_user_can('manage_options') || current_user_can('ai_agent_manage_policies');
+    }
+
+    private function verify_nonce($request): bool
+    {
+        $nonce = $request->get_header('X-WP-Nonce');
+        if (!$nonce) {
+            $nonce = $request->get_param('_wpnonce');
+        }
+        
+        return wp_verify_nonce($nonce, 'wp_rest');
     }
 }

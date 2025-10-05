@@ -56,10 +56,10 @@ Deliver an advanced admin UI for policy management and implement end-to-end revi
 ---
 
 ## 🌐 REST/API & Security
-- [ ] Policy CRUD endpoints (versioned, capability-gated)
+- [x] Policy CRUD endpoints (versioned, capability-gated)
 - [x] Review actions (list, approve, reject, comment)
-- [ ] Notifications endpoints/hooks
-- [ ] Nonce + capability checks across admin actions
+- [x] Notifications endpoints/hooks
+- [x] Nonce + capability checks across admin actions
 
 ---
 

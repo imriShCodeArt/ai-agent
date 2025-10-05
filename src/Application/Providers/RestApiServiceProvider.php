@@ -8,6 +8,7 @@ use AIAgent\REST\Controllers\PostsController;
 use AIAgent\REST\Controllers\LogsController;
 use AIAgent\REST\Controllers\PolicyController;
 use AIAgent\REST\Controllers\ReviewController;
+use AIAgent\REST\Controllers\NotificationsController;
 use AIAgent\REST\Controllers\WooCommerceController;
 use AIAgent\Infrastructure\Security\Policy;
 use AIAgent\Infrastructure\Security\EnhancedPolicy;
@@ -163,6 +164,11 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 		// Phase 5: Review controller
 		$this->container->singleton(ReviewController::class, function () {
 			return new ReviewController($this->container->get(Logger::class));
+		});
+
+		// Phase 5: Notifications controller
+		$this->container->singleton(NotificationsController::class, function () {
+			return new NotificationsController($this->container->get(Logger::class));
 		});
 	}
 
@@ -441,6 +447,10 @@ final class RestApiServiceProvider extends AbstractServiceProvider implements Ho
 				'reason' => ['required' => false, 'type' => 'string'],
 			],
 		]);
+
+		// Phase 5: Notifications endpoints
+		$notificationsController = $this->container->get(NotificationsController::class);
+		$notificationsController->register_routes();
 	}
 
 	public function checkChatPermissions(): bool
